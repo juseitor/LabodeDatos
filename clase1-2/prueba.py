@@ -24,12 +24,15 @@ print(data)
 #%%
 
 #%%
-#with open(archivo,'rt') as file:
-#    data = file.read()
-#    data_nuevo = 'inicio del texto' + data
-#    data_nuevo = data _nuevo + 'cierre del texto'
-#    
-#    datame = open("nuevonombre.txt",'w') #write mode
-#    datame.write (data_nuevo)
-#    datame.close()
+
+#Escribir archivo
+archivo = "/home/jusa/Escritorio/LabodeDatos/clase1-2/ejemplo.txt"
+with open(archivo,'rt') as file:
+    data = file.read()
+    data_nuevo = 'inicio del texto' + data
+    data_nuevo = data_nuevo + 'cierre del texto'
+    
+    datame = open("nuevonombre.txt",'w') #write mode
+    datame.write (data_nuevo)
+    datame.close()
 #%%    
