@@ -1,5 +1,7 @@
 import numpy as np
 
+import pandas as pd
+
 #%%
 import random
 prueba = random.random()
@@ -22,9 +24,12 @@ import numpy as np
 np.arange(4) # array([0,1,2,3])
 
 #%%
+
 import pandas as pd
 
-fname = '/home/Estudiante/Escritorio/LabodeDatos/Clase3/cronograma_sugerido.csv'
+fname = '/home/jusa/Escritorio/LabodeDatos/clase1-2/archivosclase1/cronograma_sugerido.csv'
 df = pd.read_csv(fname)
+
 #%%
+
 
