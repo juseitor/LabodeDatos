@@ -4,7 +4,7 @@
 
 import pandas as pd
 
-fname = '/home/Estudiante/Escritorio/LabodeDatos/Clase3/Clase-03-Actividad-01-Datos.csv'
+fname = '/home/jusa/Escritorio/LabodeDatos/clase1-2/Clase-03-Actividad-01-Datos.csv'
 df = pd.read_csv(fname)
 
 #%%
