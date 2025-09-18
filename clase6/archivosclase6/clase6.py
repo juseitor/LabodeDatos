@@ -1,7 +1,7 @@
 import pandas as pd
 import duckdb as dd
 
-carpeta = "~/LabodeDatos/clase6/archivosclase6/"
+carpeta = "/home/Estudiante/LabodeDatos/Clase6/archivosclase6/"
 
 #%%
 
@@ -261,3 +261,33 @@ WHERE CiudadOrigen = 'Madrid'
 """
 df_5 = dd.query(c).df()
 #%%
+
+# SQL Desafío 1
+
+examen     = pd.read_csv(carpeta+"examen.csv")
+
+a = """
+SELECT Nombre, Sexo, Edad
+FROM examen
+GROUP BY Nombre, Sexo, Edad
+"""
+
+df1 = dd.query(a).df()
+
+b = """
+SELECT Nombre, Instancia, Nota
+FROM examen
+GROUP BY Nombre, Instancia, Nota
+"""
+
+df2 = dd.query(b).df()
+
+c = """
+SELECT Nombre, Sexo, Edad, Instancia, Nota
+FROM df1
+INNER JOIN df2
+ON df1.Nombre = df2.Nombre
+GROUP BY df1.Nombre
+"""
+
+df3 = dd.query(c).df()
