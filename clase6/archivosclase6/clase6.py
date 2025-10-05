@@ -1,7 +1,7 @@
 import pandas as pd
 import duckdb as dd
 
-carpeta = "/home/Estudiante/LabodeDatos/Clase6/archivosclase6/"
+carpeta = "~/LabodeDatos/clase6/archivosclase6/"
 
 #%%
 
