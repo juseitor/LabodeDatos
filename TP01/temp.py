@@ -1,37 +1,63 @@
 import pandas as pd
 import duckdb as dd
 
-#carpeta = "~/LabodeDatos/clase6/archivosclase6/"
+#%%1
 
-#%%
+EP2 = pd.read_csv("~/LabodeDatos/TP01/Datos_por_departamento_actividad_y_sexo.csv")
 
-#print(carpeta)
+#%%2
 
-#empleado = pd.read_csv(carpeta+"Datos_por_departamento_actividad_y_sexo.csv")
+EP1 = pd.read_csv("~/LabodeDatos/TP01/actividades_establecimientos.csv")
 
-datos_dep_acti_sex = pd.read_csv("~/LabodeDatos/TP01/Datos_por_departamento_actividad_y_sexo.csv")
+#%%3
 
-acti_establ = pd.read_csv("~/LabodeDatos/TP01/actividades_establecimientos.csv")
+POBLACION2022 = pd.read_excel("~/LabodeDatos/TP01/padron_poblacion.xlsX", skiprows=14)
 
-#%%
+#Elimino primera columna. Sobre la misma variable 
+
+POBLACION2022 = POBLACION2022.drop(POBLACION2022.columns[0], axis=1) 
+
+#%%4
+
+EE2022 = pd.read_excel("~/LabodeDatos/TP01/2022_padron_oficial_establecimientos_educativos.xlsx", skiprows=5)
+
+#%% Consulta Establecimientos Productivos año 2022
+
+cEP2_2022 = """
+    SELECT DISTINCT anio, in_departamentos, departamento, provincia_id, provincia, clae6, clae2, letra, genero, Empleo, Establecimientos, empresas_exportadoras
+    FROM EP2
+    WHERE anio='2022';
+    """
+            
+EP2_2022 = dd.query(cEP2_2022).df()
+print(EP2_2022)
+
+#%% Consulta para 
+
+c = """
+    
+    """
+
+#%% CONSULTA PARA VER QUE ONDA BENJA1
 
 consultaSQL = """
             SELECT clae6, clae2
-            FROM acti_establ;
+            FROM EP1;
             """
             
 dataframeResultado = dd.query(consultaSQL).df()#ejecuta la consulta
 print(dataframeResultado)
 
-#%%
 
-consulta2022_departamento = """
-    SELECT DISTINCT anio, in_departamentos, departamento, provincia_id, provincia, clae6, clae2, letra, genero, Empleo, Establecimientos, empresas_exportadoras
-    FROM datos_dep_acti_sex
-    WHERE anio='2022';
+#%% CONSULTA PARA VER QUE ONDA BENJA2
+
+consulta11112 = """
+    SELECT DISTINCT clae6, clae2, letra, clae6_desc, clae2_desc, letra_desc
+    FROM EP1
+    WHERE clae6 = '11112' ;
     """
-            
-df1 = dd.query(consulta2022_departamento).df()
-print(df1)
+    
+df11112 = dd.query(consulta11112).df()
+print(df11112)
 
 #%%
