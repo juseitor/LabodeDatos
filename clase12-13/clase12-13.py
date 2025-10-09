@@ -33,7 +33,7 @@ graficopersonasCO2 = df_2022.plot(
 graficopersonasCO2 = df_2022.plot(
         x = "co2",
         y = "population",
-        kind ="line",
+        kind ="line",   
         title = "Emisiones de CO2 por Poblacion en 2022", 
         )
 
@@ -52,6 +52,8 @@ def agrupa_otros(df, variable_a_graficar, umbral=0.05):
 df_oil = agrupa_otros(
     df_2022, "oil_co2", umbral=0.03
 ).copy()  # el nombre agrupado queda en "otrosName"
+
+#%%
 
 graficoCO2 = df_oil.plot(
         x = "otrosName",

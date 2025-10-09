@@ -32,10 +32,16 @@ cEP2_2022 = """
 EP2_2022 = dd.query(cEP2_2022).df()
 print(EP2_2022)
 
-#%% Consulta para 
+#%% Para cada departamento informar la provincia, el nombre del departamento,
+#la cantidad de Establecimientos Educativos (EE) de cada nivel educativo,
+#considerando solamente la modalidad común, y la cantidad de habitantes con
+#edad correspondiente al nivel educativos listado. El orden del reporte debe
+#ser alfabético por provincia y dentro de las provincias descendente por
+#cantidad de escuelas primarias.
 
 c = """
-    
+    SELECT Jurisdiccion, Departamento, 
+    FROM EE2022
     """
 
 #%% CONSULTA PARA VER QUE ONDA BENJA1
