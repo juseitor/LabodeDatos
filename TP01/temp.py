@@ -32,6 +32,16 @@ cEP2_2022 = """
 EP2_2022 = dd.query(cEP2_2022).df()
 print(EP2_2022)
 
+#%%
+
+cEdad_Población = """
+    SELECT Unnamed: 1
+    FROM POBLACION2022
+    WHERE Unnamed: 1 = '111';
+"""
+
+EdadMAXPoblacion = dd.query(cEdad_Población).df()
+
 #%% Para cada departamento informar la provincia, el nombre del departamento,
 #la cantidad de Establecimientos Educativos (EE) de cada nivel educativo,
 #considerando solamente la modalidad común, y la cantidad de habitantes con
