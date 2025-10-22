@@ -6,7 +6,7 @@ import duckdb as db
 #%%Código para ubicar las DB
 
 direccion_actual = pl.Path(__file__).parent.resolve()
-str_dir = str(direccion_actual)+'/DB'
+str_dir = str(direccion_actual)+'/TablasOriginales'
 
 
 
