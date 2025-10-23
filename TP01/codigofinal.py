@@ -401,14 +401,6 @@ for i in range(len(indices)):
 df_final = pd.DataFrame(resultados)
 
 
-
-
-
-
-
-
-
-
 #%% Modelado de DB
 #%% Creamos Departamento
 
