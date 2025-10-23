@@ -2,11 +2,127 @@ import pandas as pd
 import numpy as np
 import pathlib as pl
 import duckdb as db
+#import matplotlib as plt
+#import seaborn as sns
 
 #%%Código para ubicar las DB
 
 direccion_actual = pl.Path(__file__).parent.resolve()
-str_dir = str(direccion_actual)+'/TablasOriginales'
+str_dir = str(direccion_actual) 
+
+
+#%% Lectura de datos
+#%% EDUCATIVO
+
+EE_df = pd.read_excel(str_dir+'/TablasOriginales/2022_padron_oficial_establecimientos_educativos.xlsx', 
+                         skiprows=6, na_values=' ')
+#skiprows saltea las primeras 6 filas, tienen información irrelevante
+#na_values setea que todos los valores str == ' ' a nan
+
+#%% PRODUCTIVO
+
+EP_df = pd.read_csv(str_dir+'/TablasOriginales/Datos_por_departamento_actividad_y_sexo.csv')
+
+
+
+
+
+
+
+
+
+
+
+#%%               GQM 
+#%% EP anio
+anio = """
+        SELECT anio,COUNT(*) AS cant
+        FROM EP_df
+        WHERE anio = 2021
+        GROUP BY anio 
+        """
+anio = db.query(anio).df()
+
+
+anio_2021 = anio.loc[0,"cant"]
+print(anio_2021)
+
+
+cant_registros = len(EP_df)
+print(cant_registros)
+
+obtenido_anio = anio_2021 / cant_registros
+print(obtenido_anio)
+
+
+
+solucion_anio = """
+                SELECT *
+                FROM EP_df
+                WHERE anio = 2022
+                """
+solucion_anio = db.query(solucion_anio).df()
+
+
+#%% EE Telefono
+
+tel =  """
+        SELECT Teléfono , COUNT(*) AS cant
+        FROM EE_df
+        WHERE Teléfono = '0' OR 
+        Teléfono IS NULL
+        GROUP BY Teléfono
+        """
+tel = db.query(tel).df()
+
+
+telefono = tel.loc[0,"cant"] + tel.loc[1,"cant"]
+print(telefono)
+
+obtenido_telefono = telefono / cant_registros
+print(obtenido_telefono)
+
+
+#%%  EE Domiclio
+
+
+dom =  """
+        SELECT Domicilio, COUNT(*) AS cant
+        FROM EE_df
+        WHERE Domicilio IS NULL
+        GROUP BY Domicilio
+        """
+dom = db.query(dom).df()
+
+
+domicilio = dom.loc[0,"cant"]
+print(domicilio)
+
+obtenido_domicilio = domicilio / cant_registros
+print(obtenido_domicilio)
+
+
+#%% EE Mail
+
+
+correo =  """
+        SELECT Mail , COUNT(*) AS cant
+        FROM EE_df
+        WHERE Mail IS NULL
+        GROUP BY Mail
+        """
+correo = db.query(correo).df()
+
+
+mail = correo.loc[0,"cant"]
+print(mail)
+
+obtenido_mail = mail / cant_registros
+print(obtenido_mail) 
+
+
+
+
 
 
 
@@ -19,13 +135,6 @@ str_dir = str(direccion_actual)+'/TablasOriginales'
 
 
 #%% Limpieza establecimientos_educativos
-#%% Lectura de datos
-
-EE_df = pd.read_excel(str_dir+'/2022_padron_oficial_establecimientos_educativos.xlsx', 
-                         skiprows=6, na_values=' ')
-#skiprows saltea las primeras 6 filas, tienen información irrelevante
-#na_values setea que todos los valores str == ' ' a nan
-
 #%% Limpieza columnas
 
 #Construyo un DF con las columnas que nos sirven
@@ -73,19 +182,13 @@ EE_limpio =  db.query(mayus).df()
 #limpio lo que son acentos
 acentos_departamento =  """
             SELECT Provincia,
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(Departamento, '[Á]', 'A'),'[É]', 'E'),
-            '[Í]', 'I'),
-            '[Ó]', 'O'),
-            '[Ú]', 'U'),
-            '[Ü]','U'),
-            '[Ú]', 'U')
-            AS Departamento, JardinM, JardinI, Primario, Secundario, SecundarioINET, SNU, SNUINET
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(Departamento, 'Á', 'A'),'É', 'E'),'Í', 'I'),
+            'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS Departamento, JardinM, JardinI, Primario, Secundario, SecundarioINET, SNU, SNUINET
             FROM EE_limpio
             
             """
@@ -96,19 +199,13 @@ EE_limpio = db.query(acentos_departamento).df()
 #limpio lo que son acentos
 acentos_provincia =  """
             SELECT 
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(Provincia, '[Á]', 'A'),'[É]', 'E'),
-            '[Í]', 'I'),
-            '[Ó]', 'O'),
-            '[Ú]', 'U'),
-            '[Ü]','U'),
-            '[Ú]', 'U')
-            AS Provincia, Departamento, JardinM, JardinI, Primario, Secundario, SecundarioINET, SNU, SNUINET
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(Provincia, 'Á', 'A'),'É', 'E'),'Í', 'I'),
+            'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS Provincia, Departamento, JardinM, JardinI, Primario, Secundario, SecundarioINET, SNU, SNUINET
             FROM EE_limpio
             
             """
@@ -128,7 +225,10 @@ EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("GENE Jardin, Pirm
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("JUAN B ALBERDI", "JUAN BAUTISTA ALBERDI")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("JUAN F IBARRA", "JUAN FELIPE IBARRA"  )
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("MAYOR LUIS J FONTANA", "MAYOR LUIS J. FONTANA")
-EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("O HIGGIN", "O'HIGGINS")
+EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("O HIGGINS", "O'HIGGINS")
+EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("GENERAL OCAMPO" , "GENERAL ORTÍZ DE OCAMPO")
+EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("LIBERTADOR GRL SAN MARTIN" , "LIBERTADOR GENERAL SAN MARTIN")
+#EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("O HIGGIN", "O'HIGGINS")
 EE_limpio["Provincia"] = EE_limpio["Provincia"].replace("CIUDAD DE BUENOS AIRES", "CABA")
 
 
@@ -140,12 +240,7 @@ EE_limpio["Provincia"] = EE_limpio["Provincia"].replace("CIUDAD DE BUENOS AIRES"
 
 
 
-
 #%% Limpieza Establecimientos_Productivos
-#%%
-
-EP_df = pd.read_csv(str_dir+'/Datos_por_departamento_actividad_y_sexo.csv')
-
 #%% Filtro por año = 2022
 
 EP_limpio = EP_df[EP_df['anio'] == 2022]
@@ -184,19 +279,13 @@ EP_limpio = db.query(consulta_EP).df()
 #limpio lo que son acentos
 acentos_departamento_EP =  """
             SELECT Provincia,
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(Departamento, '[Á]', 'A'),'[É]', 'E'),
-            '[Í]', 'I'),
-            '[Ó]', 'O'),
-            '[Ú]', 'U'),
-            '[Ü]','U'),
-            '[Ú]', 'U')
-            AS Departamento, Clae6, Sexo, Empleados, Establecimientos, Empresas_exportadoras
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(Departamento, 'Á', 'A'),'É', 'E'),'Í', 'I'),
+            'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS Departamento, Clae6, Sexo, Empleados, Establecimientos, Empresas_exportadoras
             FROM EP_limpio
             
             """
@@ -209,19 +298,14 @@ EP_limpio = db.query(acentos_departamento_EP).df()
 #limpio lo que son acentos
 acentos_provincia_EP =  """
             SELECT 
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(
-            REGEXP_REPLACE(Provincia, '[Á]', 'A'),'[É]', 'E'),
-            '[Í]', 'I'),
-            '[Ó]', 'O'),
-            '[Ú]', 'U'),
-            '[Ü]','U'),
-            '[Ú]', 'U')
-            AS Provincia, Departamento, Clae6, Sexo, Empleados, Establecimientos, Empresas_exportadoras
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(Provincia, 'Á', 'A'),'É', 'E'),'Í', 'I'),
+            'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS Provincia, Departamento,
+            Clae6, Sexo, Empleados, Establecimientos, Empresas_exportadoras
             FROM EP_limpio
             
             """
@@ -239,7 +323,7 @@ EP_limpio = db.query(acentos_provincia_EP).df()
 #%%
 
 #abro el excel
-poblacion = pd.read_excel(str_dir+"/padron_poblacion.xlsX")
+poblacion = pd.read_excel(str_dir+"/TablasOriginales/padron_poblacion.xlsX")
 
 #%%
 
@@ -337,8 +421,11 @@ df_final = pd.DataFrame(resultados)
 
 
 
+
+
+
 #%% Modelado de DB
-#%%
+#%% Creamos Departamento
 
 crearDepartamento = """
                     SELECT DISTINCT Departamento AS Nombre, Provincia
@@ -346,17 +433,6 @@ crearDepartamento = """
                     """
 
 Departamento = db.query(crearDepartamento).df()
-
-#%% MODELO VIEJO
-#crearEE =   """
-#            SELECT DISTINCT Departamento, Provincia,
-#            COUNT(JardinM OR JardinI) AS Cantidad_Jardines,
-#            COUNT(Primario) AS Cantidad_Primarios,
-#            COUNT(Secundario OR SecundarioINET OR SecundarioINET OR SNUINET) AS Cantidad_Secundarios,
-#            FROM EE_limpio
-#            GROUP BY Departamento;
-#           """
-#Establecimientos_Educativos = db.query(crearEE).df()
 
 #%% Esta consulta permite que en vez de ordenar solo por departamento y 
 # se nos computen dos departamentos distintos con el mismo nombre como
@@ -366,7 +442,8 @@ crearEE = """
     SELECT Provincia, Departamento,
     SUM(CASE WHEN JardinM = 1 OR JardinI = 1 THEN 1 ELSE 0 END) AS Cantidad_Jardines,
     SUM(CASE WHEN Primario = 1 THEN 1 ELSE 0 END) AS Cantidad_Primarios,
-    SUM(CASE WHEN Secundario = 1 OR SecundarioINET = 1 OR SNU = 1 OR SNUINET = 1 THEN 1 ELSE 0 END) AS Cantidad_Secundarios
+    SUM(CASE WHEN Secundario = 1 OR SecundarioINET = 1 OR SNU = 1 OR SNUINET = 1 THEN 1 ELSE 0 END) AS Cantidad_Secundarios,
+    COUNT(*) AS Cantidad_EE
 FROM EE_limpio
 GROUP BY Provincia, Departamento
 ORDER BY Provincia, Departamento;
@@ -391,26 +468,72 @@ Establecimientos_Productivos =  EP_limpio
 #%% AGREGO LA COLUMNA Provincia
 #%%
 pro =   """
-        SELECT DISTINCT departamento, provincia_id, provincia
+        SELECT DISTINCT UPPER(departamento) AS departamento, provincia_id, UPPER(provincia) AS provincia
         FROM EP_limpioo
         """
 pro = db.query(pro).df()
 
+prod = """
+        SELECT
+        REPLACE(
+        REPLACE(
+        REPLACE(
+        REPLACE(
+        REPLACE(
+        REPLACE(departamento, 'Á', 'A'),'É', 'E'),'Í', 'I'),
+        'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS departamento,
+        provincia_id, provincia
+        FROM pro
+        """
+prod = db.query(prod).df()
 
-Poblacion_lim = """
+
+
+po = """
+        SELECT id_Provincia, UPPER(Departamento) AS Departamento, Jardin AS Población_jardin,
+        Primaria AS Población_primario, Secundaria AS Población_secundario,
+        "Poblacion Total" AS Cantidad_habitantes
+        FROM df_final
+"""
+po = db.query(po).df()
+
+
+pob = """
+        SELECT id_Provincia,
+        REPLACE(
+        REPLACE(
+        REPLACE(
+        REPLACE(
+        REPLACE(
+        REPLACE(Departamento, 'Á', 'A'),'É', 'E'),'Í', 'I'),
+        'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS Departamento,
+        Población_jardin, Población_primario, Población_secundario, Cantidad_habitantes
+        FROM po
+        """
+pob = db.query(pob).df()
+
+pob.iat[235,1] = "1° DE MAYO"
+
+Pobla = """
                 SELECT DISTINCT *
-                FROM df_final
-                LEFT OUTER JOIN pro
-                ON df_final.Id_Provincia = pro. provincia_id AND 
-                pro.departamento = df_final.Departamento
+                FROM pob
+                LEFT OUTER JOIN prod
+                ON pob.Id_Provincia = prod. provincia_id AND 
+                prod.departamento = pob.Departamento
                 """
-Poblacion_limpio = db.query(Poblacion_lim).df()
+Pobla = db.query(Pobla).df()
 
-poblacion_limpio = """
-                    SELECT provincia, Departamento, Jardin, Primaria, Secundaria, "Poblacion Total"
-                    FROM Poblacion_limpio
-                    """
-POBLACION = db.query(poblacion_limpio).df()
+
+
+
+poblac =      """SELECT provincia AS Provincia, Departamento, Población_jardin,
+                 Población_primario, Población_secundario, Cantidad_habitantes
+                 FROM Pobla
+                        """
+Población = db.query(poblac).df()
+
+
+
 
 
 
@@ -436,31 +559,54 @@ POBLACION = db.query(poblacion_limpio).df()
 #%%CONSULTAS SQL
 #%% 1) SQL
 
+SQL1 = """
+    SELECT ee.Provincia, ee.Departamento, 
+    ee.Cantidad_Jardines AS Jardines, 
+    p.Población_jardin AS "Población Jardin", 
+    ee.Cantidad_Primarios AS Primarias, 
+    p.Población_primario AS "Población Primaria", 
+    ee.Cantidad_Secundarios AS Secundarios, 
+    p.Población_secundario AS "Población Secundaria"
+    FROM Establecimientos_Educativos AS ee
+    INNER JOIN Población AS p
+    ON ee.Provincia = p.Provincia AND ee.Departamento = p.Departamento
+    ORDER BY ee.Provincia ASC, Primarias DESC;
+"""
 
-
-
-
-
+sql1 = db.query(SQL1).df()
 
 #%% 2) SQL
 
-C2 = """
-    SELECT Provincia, Departamento, SUM (Empleados) AS "Cantidad total de empleados en 2022" 
+SQL2 = """
+    SELECT Provincia, Departamento, 
+    SUM (Empleados) AS "Cantidad total de empleados en 2022" 
     FROM Establecimientos_Productivos
     GROUP BY Provincia, Departamento
     ORDER BY Provincia ASC, "Cantidad total de empleados en 2022" DESC
 """
 
-c2_empleados = db.query(C2).df()
+sql2 = db.query(SQL2).df()
+#%% ESTO ES PARA BORRAR
 
+#sql2.to_csv('~/LabodeDatos/TP01/ConsultaSQL2.csv', index = False)
 
 #%% 3) SQL
 
+SQL3 = """
+    SELECT  DISTINCT ee.Provincia, ee.Departamento, 
+    SUM(CASE WHEN ep.Sexo = 'Mujeres' THEN ep.Empresas_exportadoras ELSE 0 END) AS Cant_Expo_Mujeres, 
+    ee.Cantidad_EE AS Cant_EE, 
+    p.Cantidad_habitantes AS Población
+    FROM Establecimientos_Educativos AS ee
+    INNER JOIN Establecimientos_Productivos AS ep
+    ON ee.Provincia = ep.Provincia AND ee.Departamento = ep.Departamento
+    INNER JOIN Población as p
+    ON ee.Provincia = p.Provincia AND ee.Departamento = p.Departamento   
+    GROUP BY ee.Provincia, ee.Departamento, ee.Cantidad_EE, p.Cantidad_habitantes
+    ORDER BY Cant_EE DESC, Cant_Expo_Mujeres DESC, ee.Provincia ASC, ee.Departamento ASC;
+"""
 
-
-
-
-
+sql3 = db.query(SQL3).df()
 
 #%% 4) SQL
 
@@ -550,4 +696,5 @@ sql4 = db.query(SQL4).df()
 #%%
 
 #Lo descargamos para el informe
-sql4.to_csv('~/LabodeDatos/TP01/DB/ConsultaSQL4.csv')
+#sql4.to_csv('~/LabodeDatos/TP01/ConsultaSQL4.csv', index = False)
+
