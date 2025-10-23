@@ -1,9 +1,19 @@
+#NOMBRE DE LOS 3 INTEGRANTES 
+
+# Benjamin Francisco Vales
+
+# Gabriel Duham Lopez
+
+# Diego Armando Pariona Escalante 
+
+
+
 import pandas as pd
 import numpy as np
 import pathlib as pl
 import duckdb as db
-#import matplotlib as plt
-#import seaborn as sns
+import matplotlib as plt
+import seaborn as sns
 
 #%%Código para ubicar las DB
 
@@ -22,15 +32,6 @@ EE_df = pd.read_excel(str_dir+'/TablasOriginales/2022_padron_oficial_establecimi
 #%% PRODUCTIVO
 
 EP_df = pd.read_csv(str_dir+'/TablasOriginales/Datos_por_departamento_actividad_y_sexo.csv')
-
-
-
-
-
-
-
-
-
 
 
 #%%               GQM 
@@ -121,20 +122,9 @@ obtenido_mail = mail / cant_registros
 print(obtenido_mail) 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+#%%
 #%% Limpieza establecimientos_educativos
+
 #%% Limpieza columnas
 
 #Construyo un DF con las columnas que nos sirven
@@ -228,7 +218,7 @@ EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("MAYOR LUIS J FONT
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("O HIGGINS", "O'HIGGINS")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("GENERAL OCAMPO" , "GENERAL ORTÍZ DE OCAMPO")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("LIBERTADOR GRL SAN MARTIN" , "LIBERTADOR GENERAL SAN MARTIN")
-#EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("O HIGGIN", "O'HIGGINS")
+EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("O HIGGINS", "O'HIGGINS")
 EE_limpio["Provincia"] = EE_limpio["Provincia"].replace("CIUDAD DE BUENOS AIRES", "CABA")
 
 
@@ -239,8 +229,8 @@ EE_limpio["Provincia"] = EE_limpio["Provincia"].replace("CIUDAD DE BUENOS AIRES"
 
 
 
-
 #%% Limpieza Establecimientos_Productivos
+
 #%% Filtro por año = 2022
 
 EP_limpio = EP_df[EP_df['anio'] == 2022]
@@ -323,7 +313,7 @@ EP_limpio = db.query(acentos_provincia_EP).df()
 #%%
 
 #abro el excel
-poblacion = pd.read_excel(str_dir+"/TablasOriginales/padron_poblacion.xlsX")
+poblacion = pd.read_excel(str_dir+"/padron_poblacion.xlsX")
 
 #%%
 
@@ -419,11 +409,6 @@ df_final = pd.DataFrame(resultados)
 
 
 
-
-
-
-
-
 #%% Modelado de DB
 #%% Creamos Departamento
 
@@ -449,16 +434,6 @@ GROUP BY Provincia, Departamento
 ORDER BY Provincia, Departamento;
 """
 Establecimientos_Educativos = db.query(crearEE).df()
-
-#%% CONSULTA PERSONAL Esta es una consulta para corroborar que EP y EE
-#tienen la misma cantidad de Departamentos
-
-CONSULTA_PERSONAL = """
-                    SELECT DISTINCT Departamento AS Nombre, Provincia
-                    FROM Establecimientos_Educativos;
-                    """
-
-Departamento_personal = db.query(CONSULTA_PERSONAL).df()
 
 #%% Asignmanos la variable EP_limpio a Establecimientos_Productivos porque 
 # ya esta limpiado y acorde al Modelo Relacional
@@ -550,12 +525,6 @@ Población = db.query(poblac).df()
 
 
 
-
-
-
-
-
-
 #%%CONSULTAS SQL
 #%% 1) SQL
 
@@ -586,21 +555,21 @@ SQL2 = """
 """
 
 sql2 = db.query(SQL2).df()
-#%% ESTO ES PARA BORRAR
 
-#sql2.to_csv('~/LabodeDatos/TP01/ConsultaSQL2.csv', index = False)
 
 #%% 3) SQL
 
 SQL3 = """
-    SELECT  DISTINCT ee.Provincia, ee.Departamento, 
+    SELECT  DISTINCT 
+    ee.Provincia, 
+    ee.Departamento, 
     SUM(CASE WHEN ep.Sexo = 'Mujeres' THEN ep.Empresas_exportadoras ELSE 0 END) AS Cant_Expo_Mujeres, 
     ee.Cantidad_EE AS Cant_EE, 
     p.Cantidad_habitantes AS Población
     FROM Establecimientos_Educativos AS ee
-    INNER JOIN Establecimientos_Productivos AS ep
+    LEFT OUTER JOIN Establecimientos_Productivos AS ep
     ON ee.Provincia = ep.Provincia AND ee.Departamento = ep.Departamento
-    INNER JOIN Población as p
+    RIGHT OUTER JOIN Población as p
     ON ee.Provincia = p.Provincia AND ee.Departamento = p.Departamento   
     GROUP BY ee.Provincia, ee.Departamento, ee.Cantidad_EE, p.Cantidad_habitantes
     ORDER BY Cant_EE DESC, Cant_Expo_Mujeres DESC, ee.Provincia ASC, ee.Departamento ASC;
@@ -619,8 +588,6 @@ CANTIDAD_EMPLEOS_X_DEPARTAMENTO = """
 
 cantidad_empleos_x_departamento = db.query(CANTIDAD_EMPLEOS_X_DEPARTAMENTO).df()
 
-#%%
-
 # Seleccionamos los departamentos que por cada provincia tienen mayor 
 # cantidad de empleos promedio
 PROMEDIO = """
@@ -635,8 +602,6 @@ PROMEDIO = """
 
 promedio = db.query(PROMEDIO).df()
 
-#%% 
-
 #Uno Establecimientos_Productivos con promedio para que me queden los
 #departamentos con cantidad de empleados mayor al promedio
 
@@ -648,8 +613,6 @@ LIMPIEZA_EP_MAYOR_PROMEDIO = """
 """
 limpieza_EP_mayor_promedio = db.query(LIMPIEZA_EP_MAYOR_PROMEDIO).df()
 
-#%%
-
 # Agrupamos hombres y mujeres en "Cant. empleos" por clae por departamento
 
 AGRUPAMOS_X_SEXO = """
@@ -659,10 +622,6 @@ AGRUPAMOS_X_SEXO = """
 """
 
 agrupamos_x_sexo = db.query(AGRUPAMOS_X_SEXO).df()
-
-#%%
-
-#Ahora nos quedamos con la actividad que mas empleo genere por cada Departamento
 
 QUEDAMOS_CON_MAX = """
     SELECT a.Provincia, a.Departamento, a.Clae6, a."Cant. empleos"
@@ -677,9 +636,6 @@ QUEDAMOS_CON_MAX = """
 
 quedamos_con_max = db.query(QUEDAMOS_CON_MAX).df()
 
-#%%
-
-# Por último ponemos el nombre correcto de Clae
 SQL4 = """
     SELECT Provincia, Departamento,
         CASE WHEN LENGTH(CAST(Clae6 AS VARCHAR)) = 5 
@@ -693,8 +649,107 @@ SQL4 = """
 sql4 = db.query(SQL4).df()
 
 
-#%%
 
-#Lo descargamos para el informe
-#sql4.to_csv('~/LabodeDatos/TP01/ConsultaSQL4.csv', index = False)
+
+
+
+
+
+
+
+
+
+#%% Gráfico 1) 
+
+C5 =    """
+        SELECT Provincia, SUM (Empleados) AS "Empleados por provincia"
+        FROM Establecimientos_Productivos
+        GROUP BY Provincia
+        ORDER BY "Empleados por provincia" DESC
+        """
+            
+Grafico1 = db.query(C5).df()
+
+Grafico1.plot(
+    x = "Provincia",
+    y = "Empleados por provincia",
+    kind = 'bar',
+    #yticks = 10000,
+    xlabel = 'Provincia',
+    title = 'Cantidad de empleados por provincia en 2022',
+    )
+
+#%% Gráfico 2)
+
+
+#sql1
+res = []
+for i in range(len(sql1)):
+    Provincia = sql1.iloc[i,0]
+    Departamento = sql1.iloc[i,1]
+    Jardines = sql1.iloc[i,2]
+    Primarios = sql1.iloc[i,4]
+    Secundarios = sql1.iloc[i,6]
+    PoblacionJ = sql1.iloc[i,3]
+    PoblacionP = sql1.iloc[i,5]
+    PoblacionS = sql1.iloc[i,7]
+    
+    j = {"Provincia":Provincia,"Departamento":Departamento,"Nivel":"Jardin","cant_EE":Jardines,"Poblacion":PoblacionJ}
+    p = {"Provincia":Provincia,"Departamento":Departamento,"Nivel":"Primario","cant_EE":Primarios,"Poblacion":PoblacionP}
+    s = {"Provincia":Provincia,"Departamento":Departamento,"Nivel":"Secundario","cant_EE":Secundarios,"Poblacion":PoblacionS}
+    
+    res.append(j)
+    res.append(p)
+    res.append(s)
+    
+    
+dato_graf = pd.DataFrame(res)
+
+    
+sns.scatterplot(
+    data = dato_graf,
+    x = "Poblacion",
+    y = "cant_EE",
+    hue = "Nivel")
+
+
+
+#%% Gráfico 3
+
+f, s = plt.pyplot.subplots(6,4)
+
+C7 =    """
+        SELECT Provincia, Departamento, SUM ("Cantidad_Jardines"+"Cantidad_Primarios"+"Cantidad_Secundarios") AS SumaEE
+        FROM Establecimientos_Educativos,
+        GROUP BY Provincia, Departamento;
+        """
+
+Grafico3 = db.query(C7).df()
+
+C8 =    """
+        SELECT DISTINCT Provincia,
+        FROM Establecimientos_Educativos;
+        """
+Provincias = db.query(C8).df()
+
+lista_de_provincias = Provincias['Provincia'].to_list()
+
+idx_iter_prov_x = 0;
+idx_iter_prov_y = 0;
+
+for provincia in lista_de_provincias:
+    if (idx_iter_prov_x == 6):
+        idx_iter_prov_y = idx_iter_prov_y + 1
+        idx_iter_prov_x = 0
+    df_provincias = Grafico3[Grafico3['Provincia'] == provincia]
+    
+    sns.boxplot(data = df_provincias, x = 'Departamento', hue = 'SumaEE', ax=s[idx_iter_prov_x, idx_iter_prov_y], palette = 'viridis')
+    idx_iter_prov_x = idx_iter_prov_x+1
+
+
+
+
+
+
+
 
