@@ -1,6 +1,7 @@
 #%%
 import pandas as pd
 import duckdb as dd
+import matplotlib.pyplot as plt
 
 #%%
 
@@ -118,3 +119,24 @@ df["quintiles_duracion"] = pd.qcut(
 )  # se le pueden poner otros nombres
 
 #%%
+
+
+
+
+
+
+
+
+#%%
+
+wine_dataset= "~/LabodeDatos/clase12-13/archivosclase12-13/wine.csv"
+
+wine_dataset = pd.read_csv(wine_dataset, sep = ";")
+
+#print(wine_dataset.columns)
+
+#%%
+
+plt.plot(wine_dataset['alcohol'], df['pH'], '.')
+
+
