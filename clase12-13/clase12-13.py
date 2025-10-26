@@ -3,42 +3,103 @@ import pandas as pd
 import duckdb as dd
 import matplotlib.pyplot as plt
 
-#%%
+#%% abrimos y modificamos co2_emissions.csv
 
 fname = '~/LabodeDatos/clase12-13/archivosclase12-13/co2_emissions.csv'
 df = pd.read_csv(fname)
 
 df_2022 = df[df["year"]==2022].copy()
 
-graficoco2= df_2022.plot(
+#%% 3) pd
+
+grafico3pd= df_2022.plot(
         x = "gdp",
         y = "co2",
-        kind ="line",
+        kind="scatter",
         title = "Emisiones de CO2 en 2022", 
 #        logy=True
         )
-graficoco2.set_yscale("log")
 
-#%%
+#Funciones de plt
+grafico3pd.set_yscale("log")
+grafico3pd.set_xscale("log")
 
-graficopersonasCO2 = df_2022.plot(
+#%% 3) plt informal
+
+grafico3plt = plt.scatter(
+    df_2022["gdp"],
+    df_2022["co2"],
+    c = 'r')
+
+plt.xlabel("GDP")
+plt.xlabel("CO2")
+plt.xscale("log")
+plt.yscale("log")
+plt.title("Emisiones de CO2 en 2022")
+plt.show()
+
+#%% 3) plt formal
+
+#plt.subplots() crea una figura (fig) y uno o más ejes (ax) dentro de ella.
+#Es la forma más común y flexible de inicializar un gráfico en Matplotlib
+fig, ax = plt.subplots()  #crea la figura y el eje
+#fig→ es el objeto “Figure” (la figura completa). 
+#Contiene todo el gráfico (título general, varios subgráficos, márgenes, etc.).
+#ax → es el objeto “Axes” (el área del gráfico dentro de la figura).
+# Técnicamente, Axes es una clase de Matplotlib
+
+ax.scatter(df_2022["gdp"],
+           df_2022["co2"],
+           c='r')
+ax.set_xlabel("GDP")
+ax.set_ylabel("CO2")
+ax.set_yscale("log")
+ax.set_xscale("log")
+#fig.suptitle("Emisiones")
+ax.set_title("Emisiones de CO2 en 2022") 
+#→ Todo eso se hace sobre un objeto Axes.
+plt.show()
+
+#ax.set_title() 
+#→ cambia el título del gráfico específico (Axes).
+
+#fig.suptitle() 
+#→ cambia el título general de la figura completa (Figure), 
+#útil cuando hay varios gráficos dentro de una misma figura.
+
+#%% 4) pd
+
+grafico4pd = df_2022.plot(
         x = "population",
         y = "co2",
-        kind ="line",
-        title = "Emisiones de CO2 por Poblacion en 2022", 
+        kind ="scatter",
+        title = "Emisiones de CO2 por Poblacion en 2022" 
         )
-#graficoco2.set_yscale("log")
+
+#Funciones de plt
+grafico4pd.set_yscale("log")
+grafico4pd.set_xscale("log")
+
+#%% 4) plt
+
+fig, ax = plt.subplots()  
+
+ax.scatter(df_2022["population"],
+           df_2022["co2"],
+           c='r')
+ax.set_xlabel("Población")
+ax.set_ylabel("CO2")
+ax.set_yscale("log")
+ax.set_xscale("log")
+ax.set_title("Emisiones de CO2 por Poblacion en 2022") 
+plt.show()
 
 #%%
 
-graficopersonasCO2 = df_2022.plot(
-        x = "co2",
-        y = "population",
-        kind ="line",   
-        title = "Emisiones de CO2 por Poblacion en 2022", 
-        )
 
-#%%
+
+
+
 
 #5
 
@@ -127,7 +188,7 @@ df["quintiles_duracion"] = pd.qcut(
 
 
 
-#%%
+#%% PROBANDO PLT CON WINEDATASET
 
 wine_dataset= "~/LabodeDatos/clase12-13/archivosclase12-13/wine.csv"
 
@@ -137,6 +198,9 @@ wine_dataset = pd.read_csv(wine_dataset, sep = ";")
 
 #%%
 
-plt.plot(wine_dataset['alcohol'], df['pH'], '.')
+plt.plot(wine_dataset['alcohol'], wine_dataset['pH'], '.')
+#el tercer argumento indica el estilo del marcador(con puntos)
+
+#%%
 
 
