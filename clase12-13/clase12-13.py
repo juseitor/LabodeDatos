@@ -312,23 +312,137 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 
-#%%
+#%% 1)
 
 fname1= "~/LabodeDatos/clase12-13/archivosclase12-13/imdb-dataset.csv"
 
 df = pd.read_csv(fname1)
 
-#%%
+# %% 2)
 
 df["quintiles_duracion"] = pd.qcut(
     df["Duration"], 5, labels=[1, 2, 3, 4, 5]
 )  # se le pueden poner otros nombres
+df["deciles_rating"] = pd.qcut(df["Rating"], 10, labels=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+df["quintiles_metascore"] = pd.qcut(
+    df["Metascore"],
+    5,
+    labels=[1, 2, 3, 4, 5],
+)
+df["cuartil_reviews"] = pd.qcut(df["reviews"], 4, labels=[1, 2, 3, 4])
+
+#%% 3)
+
+# Defino pelis polemicas como las del cuartil mas alto de reviews
+df.loc[df.cuartil_reviews == 4, "polemica"] = True
+df.loc[df.cuartil_reviews != 4, "polemica"] = False
+
+#%% 4.1) pd
+
+# Esta opcion nos permite no dejar de lado los outliers
+
+grafico44pd = df["Duration"].plot(
+    kind = "hist",
+    density = True,
+    range = (45,746),
+    bins = 75,
+    logx = True
+#    rwidth = 0.1
+# bins = Número de intervalos (o una lista con los límites)bins=[0,10,20,30]
+    )
+
+grafico44pd.set_xlabel("Duración en minutos")
+grafico44pd.set_ylabel("Frecuencia")
+grafico44pd.set_title("Frecuencia películas por duración en minutos")
+# Esta funcion la tuve que hacer de esta forma porque 
+# al estar en escala logaritmica no acepta primer argumento 0
+grafico44pd.set_xticks(range(45, 500, 50))
+
+#%% 4.2) pd
+
+# La siguiente nos permite poner un rango mas comun,
+# pero quitando outliers
+grafico444pd = df["Duration"].plot(
+    kind="hist",
+    bins=75,
+    density=True,
+    range=(45, 250),
+    color="skyblue",
+    edgecolor="black",
+    alpha=0.7,
+    title="Distribución de duración de películas"
+)
+
+grafico444pd.set_xlabel("Duración en minutos")
+grafico444pd.set_ylabel("Frecuencia")
+grafico444pd.set_title("Frecuencia películas por duración en minutos")
+# Esta funcion permite agregar ticks cada cierto periodo
+grafico444pd.set_xticks(range(0, 250, 30))
+
+#%% 4.1) sns
+
+#Tengo que modificar el df porque 
+
+fig, ax = plt.subplots()  # creás el Axes manualmente
+
+sns.histplot(
+    data = df,
+    x = "Duration",
+#    hue = "Year",
+    bins = 75,
+    binrange = (45,250),
+#    binwidth = 10,
+    stat = 'density', #'count', 'frequency', o 'probability'
+#    kde = True,
+# multiple: Si hay hue, cómo combinar barras: 
+#'layer', 'stack', 'dodge'
+# element
+# Estilo de las barras: 'bars', 'step', 'poly'
+# log_scale = True
+    ax = ax # Esta es la manera de indicarle a sns que
+    # use este Axes
+    )
+
+ax.set_xlabel("Duración en minutos")
+ax.set_ylabel("Frecuencia")
+ax.set_title("Frecuencia películas por duración en minutos")
+ax.grid(True)
+ax.set_xticks(range(0, 250, 30))
+
+#%% 4.2) sns
+
+# Si quiero tener el argumento kde = True, por default
+# se me hace sobre todos los datos, asi que pierde
+# validez el argumento binrange. Si quiero tener el
+#primero, entonces tengo que modificarlo anteriormente.
+
+df_subset = df[(df["Duration"] >= 45) & (df["Duration"] <= 250)]
+
+fig, ax = plt.subplots()
+
+sns.histplot(
+    data=df_subset,
+    x="Duration",
+    bins=75,
+    kde=True,
+    ax=ax
+)
+
+ax.set_xlabel("Duración en minutos")
+ax.set_ylabel("Frecuencia")
+ax.set_title("Frecuencia películas por duración en minutos")
+ax.grid(True)
+ax.set_xticks(range(0, 250, 30))
 
 #%%
 
 
 
+#%%
 
+
+
+#%%
 
 
 
