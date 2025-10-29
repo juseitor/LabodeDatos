@@ -337,7 +337,7 @@ df["cuartil_reviews"] = pd.qcut(df["reviews"], 4, labels=[1, 2, 3, 4])
 df.loc[df.cuartil_reviews == 4, "polemica"] = True
 df.loc[df.cuartil_reviews != 4, "polemica"] = False
 
-#%% 4.1) pd
+#%% 4.1) a) pd
 
 # Esta opcion nos permite no dejar de lado los outliers
 
@@ -358,7 +358,7 @@ grafico44pd.set_title("Frecuencia películas por duración en minutos")
 # al estar en escala logaritmica no acepta primer argumento 0
 grafico44pd.set_xticks(range(45, 500, 50))
 
-#%% 4.2) pd
+#%% 4.2) a) pd
 
 # La siguiente nos permite poner un rango mas comun,
 # pero quitando outliers
@@ -379,7 +379,7 @@ grafico444pd.set_title("Frecuencia películas por duración en minutos")
 # Esta funcion permite agregar ticks cada cierto periodo
 grafico444pd.set_xticks(range(0, 250, 30))
 
-#%% 4.1) sns
+#%% 4.1) a) sns
 
 #Tengo que modificar el df porque 
 
@@ -409,7 +409,7 @@ ax.set_title("Frecuencia películas por duración en minutos")
 ax.grid(True)
 ax.set_xticks(range(0, 250, 30))
 
-#%% 4.2) sns
+#%% 4.2) a) sns
 
 # Si quiero tener el argumento kde = True, por default
 # se me hace sobre todos los datos, asi que pierde
@@ -425,6 +425,7 @@ sns.histplot(
     x="Duration",
     bins=75,
     kde=True,
+    stat = 'density',
     ax=ax
 )
 
@@ -432,17 +433,83 @@ ax.set_xlabel("Duración en minutos")
 ax.set_ylabel("Frecuencia")
 ax.set_title("Frecuencia películas por duración en minutos")
 ax.grid(True)
-ax.set_xticks(range(0, 250, 30))
+ax.set_xticks(range(45, 251, 30))
+
+#%% 4) a)
+
+fig, ax = plt.subplots()
+
+# Histograma en rango 45 a 250
+ax.hist(
+    df["Duration"],          # columna de datos
+    bins=75,                 # cantidad de bins
+    range=(45, 250),         # rango de valores a mostrar
+    density=True,            # normaliza para densidad
+    color='skyblue',         # color opcional
+    edgecolor='black'        # bordes para distinguir los bins
+)
+
+# Etiquetas y título
+ax.set_xlabel("Duración en minutos")
+ax.set_ylabel("Frecuencia")
+ax.set_title("Frecuencia de películas por duración en minutos")
+
+# Grilla y ticks
+ax.grid(True)
+ax.set_xticks(range(45, 251, 30))
+
+plt.show()
+
+
+#%% 4) b) en sns porque me deja hacer el kde 
+
+#df_subset = df[(df["Rating"] >= 1.3) & (df["Rating"] <= 9.7)]
+
+fig, ax = plt.subplots()
+
+sns.histplot(
+    data=df,
+    x="Rating",
+    bins=85,
+    kde=True,
+    stat = 'density',
+    edgecolor = 'k',
+    color = 'b',
+    ax=ax
+)
+
+ax.set_xlabel("Rating")
+ax.set_ylabel("Frecuencia")
+ax.set_title("Frecuencia películas por rating")
+ax.grid(True)
+ax.set_xticks(range(1, 10, 1)) #solo acepta ints
+#ax.set_xticks(np.arange(1.3, 9.8, 0.8)) # esta es una buena solucion
+
+#%% 5) a)
+
+
 
 #%%
 
 
 
-#%%
 
 
 
-#%%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
