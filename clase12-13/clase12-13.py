@@ -487,14 +487,91 @@ ax.set_xticks(range(1, 10, 1)) #solo acepta ints
 
 #%% 5) a)
 
+# Se puede hacer kde en pd pero muy poco personalizada
 
+fig, ax = plt.subplots()
+
+#Algunos argumentos
+#cumulative = True,
+#fill=True,
+#bw_adjust. Ajusta la suavidad de la curva (valores más altos → más suave)    
+#cut. Extiende la curva más allá del rango de los datos
+#cumulative. Muestra la distribución acumulada
+
+
+sns.kdeplot(
+    data=df,
+    x="Rating",
+    label="Rating",
+    fill=False,
+    color = "b",
+    ax=ax
+)
+
+sns.kdeplot(
+    data=df,
+    x="metascore_scaled",
+    label="Metascore",
+    fill=False,
+    color = "r",
+    ax=ax
+)
+
+ax.set_xlabel("Rating/Metascore")
+ax.set_ylabel("Frecuencia")
+ax.set_title("Distribución de ratings")
+ax.grid(True)
+ax.set_xticks(range(1, 10, 1))
+
+plt.show()
+
+# Se ve que metascore puntea mas facilmente los puntos
+# extremos, pero los usuarios como es un promedio entonces
+# tiende todo para los 6.5 aprox
+# Cambiaria el grafico si en vez del promedio tuviesemos 
+# la mediana en la calificacion de los usuarios
+
+#%% 6) 
+
+
+
+#%% 7)
+
+fig, ax = plt.subplots()
+
+sns.kdeplot(
+    data = df,
+    x = "Year",
+    color = "b",
+    fill = False,
+    ax=ax)
+
+ax.set_xlabel("Años")
+ax.set_ylabel("Frecuencia")
+ax.set_title("Frecuencia de películas por años")
+ax.grid(True)
+ax.set_xticks(range(1929,2026,10))
+
+#%% 8) pd
+
+fig, ax = plt.subplots(figsize=(8,5)) #ancho y alto en pulgadas
+
+ax = df.boxplot(
+    column = "Duration",
+    by = "deciles_rating",
+    showfliers = False, # elimina outliers
+    grid = True,
+    patch_artist = True, #rellena las cajas de color
+    ax=ax 
+    )
+
+ax.set_xlabel("Decil de Rating")
+ax.set_ylabel("Duración de la película")
+#ax.set_title("")
+fig.suptitle("")
+ax.set_title("Boxplot de duración de película por decil de rating")
 
 #%%
-
-
-
-
-
 
 
 
