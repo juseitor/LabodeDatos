@@ -529,7 +529,8 @@ plt.show()
 # extremos, pero los usuarios como es un promedio entonces
 # tiende todo para los 6.5 aprox
 # Cambiaria el grafico si en vez del promedio tuviesemos 
-# la mediana en la calificacion de los usuarios
+# la mediana en la calificacion de los usuarios. O miento, 
+# se veria mas o menos el mismo fenómeno
 
 #%% 6) 
 
@@ -552,7 +553,7 @@ ax.set_title("Frecuencia de películas por años")
 ax.grid(True)
 ax.set_xticks(range(1929,2026,10))
 
-#%% 8) pd
+#%% 8) df
 
 fig, ax = plt.subplots(figsize=(8,5)) #ancho y alto en pulgadas
 
@@ -571,39 +572,86 @@ ax.set_ylabel("Duración de la película")
 fig.suptitle("")
 ax.set_title("Boxplot de duración de película por decil de rating")
 
-#%%
+# Veo el patron de que a medida que van aumentando los ratings
+#las películas duran mas.
+
+#%% 8) sns
+
+fig, ax = plt.subplots(figsize=(8,5))
+
+sns.boxplot(
+    data = df,
+    x = "deciles_rating",
+    y = "Duration",
+    ax = ax,
+    showfliers = False,      # elimina outliers
+    palette = "Blues",       # paleta de colores
+    width = 0.6,             # ancho de las cajas
+    linewidth = 1.2,         # grosor de bordes
+    boxprops = {"alpha": 0.8}  # transparencia suave
+)
+
+# Personalización de ejes y título
+ax.set_xlabel("Decil de Rating", fontsize=11)
+ax.set_ylabel("Duración de la película (minutos)", fontsize=11)
+ax.set_title("Boxplot de duración de películas por decil de rating", fontsize=13, fontweight="bold")
+ax.grid(True, linestyle="--", alpha=0.6)
+
+plt.tight_layout() #ajusta automáticamente los espacios y márgenes del gráfico para que los títulos
+plt.show()
 
 
+#%% 9) sns
 
+#No se puede hacer en pd
 
+fig, ax = plt.subplots(figsize=(10,5))
 
+sns.violinplot(
+    data=df,
+    x="decada",
+    y="metascore_scaled",
+#    inner="box",       # Muestra el boxplot dentro del violín
+    cut=0,             # Evita que se extienda más allá de los datos
+    bw=0.2,            # Controla el "suavizado" del KDE
+    scale="width",     # Ajusta el ancho de cada violín
+    palette="Blues",   # Colores
+    ax=ax
+)
 
+ax.set_xlabel("Decadas")
+ax.set_ylabel("metascore_scaled")
+ax.set_title("Decada por Metascore")
 
+plt.tight_layout() #ajusta automáticamente los espacios y márgenes del gráfico para que los títulos
+plt.show()
 
+#%% 9) Boxplot de comparacion
 
+fig, ax = plt.subplots(figsize=(10,5))
 
+sns.boxplot(
+    data = df,
+    x="decada",
+    y="metascore_scaled",
+    ax = ax,
+    showfliers = False,      # elimina outliers
+    palette = "Blues",       # paleta de colores
+    width = 0.6,             # ancho de las cajas
+    linewidth = 1.2,         # grosor de bordes
+    boxprops = {"alpha": 0.8}  # transparencia suave
+    )
 
+ax.set_xlabel("Decadas")
+ax.set_ylabel("metascore_scaled")
+ax.set_title("Decada por Metascore")
+plt.tight_layout() #ajusta automáticamente los espacios y márgenes del gráfico para que los títulos
+plt.show()
 
+#%% 10)
 
+#fig, ax = plt.subplots(figsize=(10,5))
 
-
-
-
-
-
-#%% PROBANDO PLT CON WINEDATASET
-
-wine_dataset= "~/LabodeDatos/clase12-13/archivosclase12-13/wine.csv"
-
-wine_dataset = pd.read_csv(wine_dataset, sep = ";")
-
-#print(wine_dataset.columns)
-
-#%%
-
-plt.plot(wine_dataset['alcohol'], wine_dataset['pH'], '.')
-#el tercer argumento indica el estilo del marcador(con puntos)
-
-#%%
-
-
+#sns.kdeplot(
+#    data = df,
+#    )
