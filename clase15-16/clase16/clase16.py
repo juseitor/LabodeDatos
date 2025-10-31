@@ -1,10 +1,62 @@
 import pandas as pd
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 #%%
 
-fname = '~/LabodeDatos/clase15-16/archivosclase16/titanic.csv'
+fname = '~/LabodeDatos/clase15-16/clase16/archivosclase16/titanic.csv'
 titanic = pd.read_csv(fname)
+
+#%% Consigna 1
+
+fig, ax = plt.subplots(figsize=(8,5))
+
+#En este grafico me muestra el porcentaje de sobrevivientes
+#por cada clase.
+sns.barplot(
+    data = titanic,
+    x = 'Pclass',
+    y = 'Survived',
+    hue = 'Pclass',
+#    hue = 'Survived',
+    ax = ax
+    )
+#%%
+
+fig, ax = plt.subplots(figsize=(8,5))
+
+sns.barplot(
+    data = titanic,
+    x = 'Sex',
+    y = 'Survived',
+    hue = 'Sex',
+    ax = ax
+    )
+
+#%%
+
+titanic["Age Rate"] = pd.cut(
+    titanic["Age"],
+    bins=[0, 12, 70, float("inf")],
+    labels=["0-12", "12-70", "+70"],
+    right=True
+)
+#%%
+
+fig, ax = plt.subplots(figsize=(8,5))
+
+sns.barplot(
+    data = titanic,
+    x = 'Age Rate',
+    y = 'Survived',
+    hue = 'Age Rate',
+    ax = ax
+    )
+
+
+
+
+
 
 #%% Hago columnas en filas
 
