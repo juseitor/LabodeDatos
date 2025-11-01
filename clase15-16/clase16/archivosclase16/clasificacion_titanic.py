@@ -13,7 +13,7 @@ import pandas as pd
 
 #%%######################
 
-df_titanic = pd.read_csv('titanic_training.csv')
+df_titanic = pd.read_csv('~/LabodeDatos/clase15-16/clase16/archivosclase16/titanic.csv')
 
 df_titanic.dropna(subset = ['Age', 'Fare'], how = 'any', inplace = True)
 X = df_titanic[['Age', 'Fare']]
