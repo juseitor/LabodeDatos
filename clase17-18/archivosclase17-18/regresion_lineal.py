@@ -15,7 +15,7 @@ from sklearn.metrics import r2_score
 
 #%% roundup
 
-df_ru = pd.read_csv("datos_roundup.txt", sep=' ')
+df_ru = pd.read_csv("~/LabodeDatos/clase17-18/archivosclase17-18/datos_libreta_156.txt", sep=' ')
 
 plt.scatter(df_ru['RU'], df_ru['ID'])
 
