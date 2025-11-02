@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import matplotlib.pyplot as plt
 #%%
-df_mpg = pd.read_csv("auto-mpg.xls")
+df_mpg = pd.read_csv("~/LabodeDatos/clase17-18/archivosclase17-18/auto-mpg.xls")
 
 X = df_mpg[['weight', 'displacement', 'acceleration']]
 y = df_mpg['mpg']
