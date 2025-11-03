@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+ 
 #%%
 
 df_minst = pd.read_csv('~/LabodeDatos/TP-02-Labo de Datos/TablasOriginales/kmnist_classmap_char.csv')
