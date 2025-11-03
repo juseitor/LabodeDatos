@@ -137,49 +137,154 @@ print("R²: " + str(r2))
 
 
 
+
+
+
+
+
 #%% Anascombe
 
 df = sns.load_dataset("anscombe")
 
 sns.lmplot(
-    data=df, x="x", y="y", col="dataset", hue="dataset",
-    col_wrap=2, palette="muted", ci=None,
-    height=4, scatter_kws={"s": 50, "alpha": 1}
+    data=df, 
+    x="x", 
+    y="y", 
+    col="dataset", 
+    hue="dataset",
+    col_wrap=2, #En vez de una fila de 4, hace dos filas de graficos de dos
+    palette="muted", 
+    ci=None, #quita el sombreado
+    height=4, 
+    scatter_kws={"s": 50, "alpha": 1}
 )
+
 #%% primer dataset de anscombe
 
 df1 = df[df['dataset'] == "I"]
-df1
-X1 = df1['x']
-Y1 = df1['y']
-
-xbar = np.mean(X1)
-ybar = np.mean(Y1)
-b1 = sum((X1-xbar)*(Y1-ybar))/sum((X1-xbar)*(X1-xbar))
-b0 = ybar - b1*xbar
 
 #%%
-X = np.linspace(min(df1['x']), max(df1['x']))
-Y = b0 + b1*X
 
+mod_lineal_df1 = LinearRegression()
+# De alguna manera el parametro de entrada de fit hay que
+#largarlo con doble corchete para elegir la columna. Lo mismo
+#con modelo_lineal.score()
+mod_lineal_df1.fit(df1[['x']], df1[['y']])
+
+#%%
+
+R12 = mod_lineal_df1.score(df1[['x']], df1[['y']])
+
+#%%
+
+X1 = np.linspace(min(df1['x']), max(df1['x']))
+
+#%%
+
+#b1 = mod_lineal_df1.coef_
+#b0 = mod_lineal_df1.intercept_
+
+# Insertando en .coef_[0], nos garantizamos que el Array 
+#resultante de Y1 sea de [50] en vez de  [1,50] 
+Y1 = mod_lineal_df1.intercept_ + mod_lineal_df1.coef_[0]*X1
+
+# Esta es la recta estimada con los valores de la muestra
+
+#%%
+
+# Graficamos
 plt.scatter(df1['x'], df1['y'])
-plt.plot(X, Y, 'black')
+plt.plot(X1, Y1, 'k')
 plt.show()
+
 #%%
-Ypred = b0+b1*X1
-r2_score(Y1, Ypred)
 
-#%% repetir con los demás datasets de Anscombe
+# Y_pred son los valores que toma la recta sobre los valores 'x' de la muestra
+Y_pred =mod_lineal_df1.intercept_ + mod_lineal_df1.coef_[0]*df1['x']
+
+plt.scatter(df1['x'], Y_pred)
+plt.plot(df1['x'], Y_pred)
+
+#%%
+
+r2 = r2_score(df1['y'], Y_pred) #Es de sklearn.metrics
+print("R²: " + str(r2))
+
+#%%
+
+#Diferencias entre usar r2_score y .score()
+
+ # modelo_lineal.score()
+# Usa el modelo ya entrenado.
+# Usa los mismos valores que se entrenaron para medir el R².
+# Es Rápido,  se usa cuando ya tenés el modelo entrenado 
+#y querés el R².
+# Se usan los mismos parametros de .fit()
+
+ # r2_score(), Métrica directa
+# Comparás valores reales (df1['y']) con tus predicciones (Y_pred).
+# No depende del modelo.
+# Es más flexible.
 
 
 
+#%% segundo dataset de anscombe
 
+df2 = df[df['dataset'] == 'II']
 
+#%%
 
+mod_lineal_df2 = LinearRegression()
+mod_lineal_df2.fit(df2[['x']], df2[['y']])
 
+#%%
 
+R22 = mod_lineal_df2.score(df2[['x']], df2[['y']])
 
+#%%
 
+Y1 = mod_lineal_df2.intercept_ + mod_lineal_df2.coef_[0]*df2['x']
+
+plt.scatter(x=df2['x'], y=df2['y'])
+plt.plot(df2['x'], Y1)
+
+#%% 3er dataset anscombe
+
+df3 = df[df['dataset'] == 'III']
+
+#%%
+
+mod_lineal_df3 = LinearRegression()
+mod_lineal_df3.fit(df3[['x']],df3[['y']])
+R32 = mod_lineal_df3.score(df3[['x']],df3[['y']])
+
+#%%
+
+# Recta ajustada de Regresión
+Y3_pred = mod_lineal_df3.intercept_ + mod_lineal_df3.coef_[0]*df3['x']
+
+plt.scatter(df3['x'],df3['y'])
+plt.plot(df3['x'], Y3_pred)
+
+#%% cuarto dataset anscombe
+
+df4 = df[df['dataset'] == 'IV']
+
+#%%
+
+mod_lineal_df4 = LinearRegression()
+mod_lineal_df4.fit(df4[['x']],df4[['y']])
+R42 = mod_lineal_df4.score(df4[['x']], df4[['y']])
+
+#%%
+
+Y4_pred = mod_lineal_df4.intercept_ + mod_lineal_df4.coef_[0]*df4['x']
+
+plt.scatter(df4['x'], df4['y'])
+plt.plot(df4['x'], Y4_pred)
+plt.xticks(range(0,20,1))
+
+#%%
 
 
 
@@ -191,94 +296,71 @@ r2_score(Y1, Ypred)
 
 #%% Autos
 
-df_mpg = pd.read_csv("/home/Estudiante/LabodeDatos/clase17-18/archivosclase17-18/auto-mpg.xls")
-
-X = df_mpg[['weight', 'displacement', 'acceleration']]
-y = df_mpg['mpg']
-
-# división en train y test
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=12)
-#%%
-
-valores_k = [1, 3, 5, 10, 20, 30]
-
-resultados = []
-
-for k in valores_k:
-    modelo = KNeighborsRegressor(n_neighbors=k)
-    modelo.fit(X_train, y_train)
-
-    y_pred_train = modelo.predict(X_train)
-    y_pred_test = modelo.predict(X_test)
-
-    resultados.append({
-        'k': k,
-        'Train_RMSE': np.sqrt(mean_squared_error(y_train, y_pred_train)),
-        'Test_RMSE': np.sqrt(mean_squared_error(y_test, y_pred_test)),
-        'Train_MAE': mean_absolute_error(y_train, y_pred_train),
-        'Test_MAE': mean_absolute_error(y_test, y_pred_test),
-    })
-
-# Mostrar resultados
-df_resultados = pd.DataFrame(resultados)
-print(df_resultados)
-#%%
-
-plt.figure(figsize=(8, 5))
-plt.plot(valores_k, df_resultados['Train_RMSE'], marker='o', label='Train')
-plt.plot(valores_k, df_resultados['Test_RMSE'], marker='o', label='Test')
-
-plt.xlabel('Número de vecinos (k)')
-plt.ylabel('RMSE')
-plt.title('Error cuadrático medio (RMSE) según k en KNN')
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#%%/home/Estudiante
-
-
-import pandas as pd
 import numpy as np
-from sklearn.neighbors import KNeighborsRegressor
+import pandas as pd
+import duckdb as db
+from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import train_test_split
-#%%
+from sklearn.metrics import r2_score
 
-df = pd.read_csv('~/LabodeDatos/clase17-18/archivosclase17-18/2025C2 - Alturas - Hoja 1.csv')
-df = df.drop(columns = ['¿Sabes quien mas mide 156?', 'Mi mamiiii', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8' ])
-df =  df.dropna( subset = ['Altura (cm)', 'Mami'])
-
+df_mpg = pd.read_csv("~/LabodeDatos/clase17-18/archivosclase17-18/auto-mpg.xls")
 
 #%%
-knn = KNeighborsRegressor(n_neighbors=5)
 
-knn.fit(df[['Mami']], df['Altura (cm)'])
-ypred = knn.predict(df[['Mami']])
-mean_squared_error(df['Altura (cm)'], ypred)
-np.sqrt(mean_squared_error(df['Altura (cm)'], ypred))
+mod_lineal_weight = LinearRegression()
+mod_lineal_weight.fit(df_mpg[['weight']], df_mpg[['mpg']])
+R2_w = mod_lineal_weight.score(df_mpg[['weight']], df_mpg[['mpg']])
+
 #%%
+
+Y_pred = mod_lineal_weight.intercept_ + mod_lineal_weight.coef_[0]*df_mpg['weight']
+
+plt.scatter(df_mpg['weight'], df_mpg['mpg'])
+plt.plot(df_mpg['weight'], Y_pred, 'k')
+
+#%%
+# Cambio de consumo estimado si aumenta el peso en 100u
+print(str(mod_lineal_weight.coef_[0]*100))
+# DEF PENDIENTE: Por cada unidad adicional de weight, se
+#observa un decrecimiento de (valor pendiente) unidades. 
+#A eso lo multiplicamos por 100
+
+#%%
+
+
+
+
+
+
+
+
+
+
+
+#%% modelo lineal con dos variables
+
+modelo_lineal2 = LinearRegression()
+modelo_lineal2.fit(df_mpg[['weight', 'displacement']], df_mpg['mpg'])
+
+print("R2: "+str(modelo_lineal2.score(df_mpg[['weight', 'displacement']], df_mpg['mpg'])))
+print("Coeficientes:", modelo_lineal2.coef_)
+print("Intercepto:", modelo_lineal2.intercept_)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
