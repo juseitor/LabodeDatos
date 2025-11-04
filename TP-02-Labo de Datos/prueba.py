@@ -3,6 +3,9 @@ import numpy as np
 import duckdb as db
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
  
 #%% Cargamos los dataset
@@ -259,10 +262,49 @@ df2 = df_kuzu[(df_kuzu['label'] == 5) | (df_kuzu['label'] == 4)]
 x = df2.drop(columns=['label'])
 y = df2['label']
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=12, stratify = y)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=12, stratify = y)
 
-#%% 2.c)
+#%% 2.c)  
 
+# Hacemos Validación cruzada para analizar tambien la estabilidad de haber
+#elegido eos atributos (celdas de pixel) en particular
 
+nsplits = 5
+skf = StratifiedKFold(n_splits=nsplits)
 
+# Cantidad de repeticiones por fold (columnas aleatorias)
+n_pruebas = 10
+
+resultados = np.zeros((nsplits, n_pruebas))
+# Elegimos probar en algunas filas particulares en las cuales vimos diferencias
+# en el pixel promedio
+series = [
+    [80, 81, 82],
+    [110, 111, 112],
+    [200, 201, 202],
+    [323, 324, 325],
+    [425, 426, 427],
+    [450, 451, 452],
+    [500, 501, 502],
+    [550, 551, 552],
+    [600, 601, 602],
+    [640, 641, 642]
+]
+
+for i, (train_index, test_index) in enumerate(skf.split(x_train, y_train)):
+    kf_X_train, kf_X_test = x_train.iloc[train_index], x_train.iloc[test_index]
+    kf_y_train, kf_y_test = y_train.iloc[train_index], y_train.iloc[test_index]
+    for j in range(n_pruebas):
+        cols = series[j]
+        X_train_cols = kf_X_train.iloc[:, cols]
+        X_test_cols  = kf_X_test.iloc[:, cols]
+        
+        knn = KNeighborsClassifier(n_neighbors=3)
+        knn.fit(X_train_cols, kf_y_train)
+        pred = knn.predict(X_test_cols)
+        acc = accuracy_score(kf_y_test, pred)
+        resultados[i, j] = acc
+
+# La matriz resultados que nos queda es el valor de la metrica 
+#accuracy en el fold i (0 =< i < 5), en la prueba j (0 <= j < 10)
 #%%
