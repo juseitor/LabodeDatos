@@ -1,26 +1,27 @@
 import pandas as pd
 import numpy as np
-import duckdb as db
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import train_test_split
- 
-#%% Cargamos los dataset
+import pathlib as pl
+import duckdb as db
+#%%
+#%%Código para ubicar las DB
 
-df_minst = pd.read_csv('~/Escritorio/kmnist_classmap_char.csv')
-df_kuzu = pd.read_csv('~/Escritorio/kuzushiji_full.csv')
+Direccion_actual = pl.Path(__file__).parent.resolve()
+Ubi = str(Direccion_actual) 
+
+#%% Cargamos los dataset
+df_minst = pd.read_csv(Ubi+"/kuzushiji_full.csv")
+df_kuzu = pd.read_csv(Ubi+"/kmnist_classmap_char.csv")
 
 #%% 
-
-df_kuzu_5 = df_kuzu[df_kuzu['label'] == 5 ]
-
 #%%
 
 fig, ax = plt.subplots(figsize = (18,10))
 
 sns.kdeplot(
     data = df_kuzu,
-    x = '755',
+    x = '74',
     fill = False,
     hue = 'label',
     palette = "Paired",
@@ -30,22 +31,15 @@ sns.kdeplot(
 
 ax.set_title("Frecuencia de pixels")
 ax.set_xlabel("Pixels")
-ax.set_ylabel("Frecuencia de Pixel")
+ax.set_ylabel("Frecuencia de Pixel")      
 
-#%%
 
-#
-# Clase 0 -> celda 68 al 70 (valor pixel 0)
-# Clase 1 -> celda 423 (valor pixel 0)
-# 
-# Clase 3 -> celda 489 (valor pixel 0)
-# Clase 4 -> celda 179
-# Clase 5 -> celda 382 (valor pixel 0)
-# Clase 6 -> celda 511 (valor pixel 0)
-# Clase 7 -> celda 318
-#
-#
-#
+
+
+
+
+
+
 
 #%%
 
@@ -245,6 +239,20 @@ img = np.array(kuzu.iloc[4]).reshape((28,28))
 plt.imshow(img, cmap='gray')
 plt.show()
 
+#%%
+
+df_final.T.boxplot()
+plt.title("Distribución por tipo (Boxplot)")
+plt.xlabel("Tipo")
+plt.ylabel("Valor")
+plt.show()
+     
+
+
+
+
+
+
 
 
 #%% Consigna 2
@@ -262,7 +270,3 @@ y = df2['label']
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=12, stratify = y)
 
 #%% 2.c)
-
-
-
-#%%

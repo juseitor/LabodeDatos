@@ -1,141 +1,59 @@
-from bs4 import BeautifulSoup
-import requests
+import pandas as pd 
+import numpy as np
+from sklearn.model_selection import train_test_split, KFold
+from sklearn.metrics import accuracy_score
+from sklearn import tree
 
-url = "https://lcd.exactas.uba.ar/materias/"
-r = requests.get(url)
-print(r.text)
+#%% cargamos los datos
 
-#%%
-
-r = requests.get("https://lcd.exactas.uba.ar/materias/")
-materias = BeautifulSoup(r.text, 'html.parser')
-materias
+df = pd.read_csv('~/LabodeDatos/clase19/archivosclase19/seleccion_modelos.csv')
 
 #%%
+X = df.drop("Y", axis=1)
+y = df.Y
 
-materias.find('h1')
+#%% separamos entre dev y eval
+X_dev, X_eval, y_dev, y_eval = train_test_split(X,y,test_size=0.1, random_state = 20)
 
-#%%
+#%% experimento
 
-materias.find_all('h1')
+alturas = [1,2,3,5,10]
+nsplits = 5
+kf = KFold(n_splits=nsplits)
 
-#%% Para acceder a los valores de los atributos podemos usar el comando .get()
+resultados = np.zeros((nsplits, len(alturas)))
+# una fila por cada fold, una columna por cada modelo
 
-materias.find('h1').get('class')
+for i, (train_index, test_index) in enumerate(kf.split(X_dev)):
 
-#%%
-
-print(materias.find('h1').get('style'))
-print(materias.find('h2').get('style'))
-
-#%% Podemos buscar elementos de la página buscando sus atributos como clase o estilo.
-
-materias.find_all(attrs={'class':'flip-box-heading-back'})
-
-#%%
-
-materias.find_all('h3', attrs={'class':'flip-box-heading-back'})
-
-#%%
-
-materias.find_all('li', attrs={'style':True})
-
-#%% A veces, los elementos pueden tener varias clases. Se pueden acceder a esos elementos consultando por cualquiera de las clases.
-
-div = materias.find(attrs={'class':'fusion-layout-column'})
-div.get('class')
-
-#%% Podemos usar los comandos find() y find_all() en un elemento para buscar elementos que sean hijos del primero. 
-#Intentemos acceder a todas las filas de la tabla del cronograma sugerido a partir de algún elemento padre.
-
-div = materias.find('ul')   
-div.find_all('li')
-
-#%%
-
-materias.find_all(attrs={'class':'fusion-column-wrapper fusion-content-layout-column'})
-
-#%%
-
-divs = materias.find_all(attrs={'class':'table'})
-len(divs)
-
-#%%
-
-div = materias.find(attrs={'class':'table'})
-rows = div.find_all('tr') #tr: table row
-for row in rows:
-  celdas = row.find_all('td')
-  print(celdas)
-  
-#%%
-
-div = materias.find(attrs={'class':'table'})
-rows = div.find_all('tr') #tr: table row
-for row in rows:
-  celdas = row.find_all('td')
-  print(celdas[0].text, celdas[1].text, celdas[2].text)
-  
-#%%
-
-
-
-#%% EJEMPLO EN CLASE
-
-rr = requests.get('https://datos.gob.ar/dataset?groups=agri')
-agricultura = BeautifulSoup(rr.text, 'html.parser')
-agricultura
+    kf_X_train, kf_X_test = X_dev.iloc[train_index], X_dev.iloc[test_index]
+    kf_y_train, kf_y_test = y_dev.iloc[train_index], y_dev.iloc[test_index]
+    
+    for j, hmax in enumerate(alturas):
+        
+        arbol = tree.DecisionTreeClassifier(max_depth = hmax)
+        arbol.fit(kf_X_train, kf_y_train)
+        pred = arbol.predict(kf_X_test)
+        score = accuracy_score(kf_y_test,pred)
+        
+        resultados[i, j] = score
+        
+#%% promedio scores sobre los folds
+scores_promedio = resultados.mean(axis = 0)
 
 #%% 
+for i,e in enumerate(alturas):
+    print(f'Score promedio del modelo con hmax = {e}: {scores_promedio[i]:.4f}')
 
-agricultura.find_all('h3')
+#%% entreno el modelo elegido en el conjunto dev entero
+arbol_elegido = tree.DecisionTreeClassifier(max_depth = 1)
+arbol_elegido.fit(X_dev, y_dev)
+y_pred = arbol_elegido.predict(X_dev)
 
-#%% Notese casi todos los agricultura tienen todas class: "dataset-title"
+score_arbol_elegido_dev = accuracy_score(y_dev, y_pred)
+print(score_arbol_elegido_dev)
 
-agricultura.find('h3').get('class')
-
-#%%
-
-print(agricultura.find('h3').get('style'))
-
-#%% El find_all se usa para 'hx' (como arriba) o aca como hacerlo con una clase
-
-agricultura.find_all(attrs={'class':'dataset-title'})
-
-agricultura.find_all('h3', attrs={'class':'dataset-title'})
-
-#%%
-
-agricultura.find_all('li', attrs={'class','filter-value'})
-
-#%%
-
-print(agricultura.find('li').get('style'))
-
-#%%
-
-div = agricultura.find(attrs={'class':'dataset-title'})
-div.get('class')
-
-#%%
-    
-agricultura.find_all('h3', attrs={'class', 'dataset-title'})    
-
-#%%
-
-divs = agricultura.find_all(attrs={'class', 'dataset-title'})
-len(divs)
-
-#for row in divs:
-    
-#%%
-
-div = agricultura.find(attrs={'class':'dataset-title'})
-print (div)
-
-#%%
-
-rows = div.find_all('tr') #tr: table row
-for row in rows:
-  celdas = row.find_all('td')
-  print(celdas[0].text, celdas[1].text, celdas[2].text)
+#%% pruebo el modelo elegid y entrenado en el conjunto eval
+y_pred_eval = arbol_elegido.predict(X_eval)       
+score_arbol_elegido_eval = accuracy_score(y_eval, y_pred_eval)
+print(score_arbol_elegido_eval)
