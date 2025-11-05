@@ -18,12 +18,15 @@ Ubi = str(Direccion_actual)
 df_kuzu = pd.read_csv(Ubi+"/kuzushiji_full.csv")
 df_minst = pd.read_csv(Ubi+"/kmnist_classmap_char.csv")
 
-#%% 
 
-#%%  TODO ESTO PARA CREAR EL DATAFRAME forma_por_clase
-
+#%%                  EJERCICIO 1 
+#%%  
+# TODO ESTO PARA CREAR EL DATAFRAME forma_por_clase, NO SE ME OCURRE COMO HACER UN FOR Y REDUCIRLO
+# IGUAL SIRVE PARA VER LOS CARACTERES POR CLASE
+# ESTAS VARIABLES ESTAN EN CON LA PRIMER LETRA EN MAYUCULA PARA QUE PUEDAD FILTRAR EN EL SPYDER
 res = []
 
+#%%
 Class0 = """
             SELECT *
             FROM df_kuzu
@@ -40,10 +43,7 @@ Dic0['label'] = 0
 
 res.append(Dic0)
 
-
-
-
-
+#%%
 Class1 = """
             SELECT *
             FROM df_kuzu
@@ -60,8 +60,7 @@ Dic1['label'] = 1
 
 res.append(Dic1)
 
-
-
+#%%
 
 Class2 = """
             SELECT *
@@ -78,10 +77,7 @@ for I in Class2.iloc[:, :-1].columns:
 Dic2['label'] = 2
 res.append(Dic2)
 
-
-
-
-
+#%%
 
 Class3 = """
             SELECT *
@@ -100,14 +96,8 @@ for I in Class3.iloc[:, :-1].columns:
 Dic3['label'] = 3
 
 res.append(Dic3)
-    
 
-
-
-
-
-
-
+#%%
 
 Class4 = """
             SELECT *
@@ -125,12 +115,7 @@ for I in Class4.iloc[:, :-1].columns:
 Dic4['label'] = 4
 res.append(Dic4)
 
-
-
-
-
-
-
+#%%
 
 Class5 = """
             SELECT *
@@ -148,10 +133,7 @@ for I in Class5.iloc[:, :-1].columns:
 Dic5['label'] = 5
 res.append(Dic5)
 
-
-
-
-
+#%%
 
 Class6 = """
             SELECT *
@@ -168,12 +150,8 @@ for I in Class6.iloc[:, :-1].columns:
 
 Dic6['label'] = 6
 res.append(Dic6)
-  
 
-
-
-    
-
+#%%
 
 Class7 = """
             SELECT *
@@ -191,11 +169,7 @@ for I in Class7.iloc[:, :-1].columns:
 Dic7['label'] = 7
 res.append(Dic7)
 
-
-
-
-
-
+#%%
 
 Class8 = """
             SELECT *
@@ -213,13 +187,7 @@ for I in Class8.iloc[:, :-1].columns:
 Dic8['label'] = 8
 res.append(Dic8)
 
-
-
-
-
-
-
-
+#%%
 
 Class9 = """
             SELECT *
@@ -236,9 +204,14 @@ for I in Class9.iloc[:, :-1].columns:
 
 Dic9['label'] = 9  
 res.append(Dic9)
-    
-forma_por_clase = pd.DataFrame(res)
+
 #%%  
+
+forma_por_clase = pd.DataFrame(res)
+
+#%%
+#%%   ELIMINO LA COLUMNA LABEL
+
 kuzu = forma_por_clase.iloc[:, :-1] 
 
 #%%  IMAGENES DE LAS LETRAS(LABEL) 
@@ -293,23 +266,15 @@ df2 = df_kuzu[(df_kuzu['label'] == 5) | (df_kuzu['label'] == 4)]
 x = df2.drop(columns=['label'])
 y = df2['label']
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=12, stratify = y)
+# Notese que estratificamos los casos de train y test para que mantengan la 
+#proporción por clase de datos
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=12, stratify = y)
 
 #%% 2.c)  
 
-# Hacemos Validación cruzada para analizar tambien la estabilidad de haber
-#elegido eos atributos (celdas de pixel) en particular
-
-nsplits = 5
-skf = StratifiedKFold(n_splits=nsplits)
-
-# Cantidad de repeticiones por fold (columnas aleatorias)
-n_pruebas = 10
-
-resultados = np.zeros((nsplits, n_pruebas))
-# Elegimos probar en algunas filas particulares en las cuales vimos diferencias
-# en el pixel promedio
-series = series_fijas = [
+# Elegimos probar en algunas series de columnas particulares en las cuales 
+#vimos diferencias en el pixel promedio
+columnas = [
     [80, 81, 82],
     [110, 111, 112],
     [200, 201, 202],
@@ -322,19 +287,54 @@ series = series_fijas = [
     [640, 641, 642]
 ]
 
-for i, (train_index, test_index) in enumerate(skf.split(x_train, y_train)):
-    kf_X_train, kf_X_test = x_train.iloc[train_index], x_train.iloc[test_index]
-    kf_y_train, kf_y_test = y_train.iloc[train_index], y_train.iloc[test_index]
-    for j in range(n_pruebas):
-        cols = series[j]
-        X_train_cols = kf_X_train.iloc[:, cols]
-        X_test_cols  = kf_X_test.iloc[:, cols]
-        
-        knn = KNeighborsClassifier(n_neighbors=3)
-        knn.fit(X_train_cols, kf_y_train)
-        pred = knn.predict(X_test_cols)
-        acc = accuracy_score(kf_y_test, pred)
-        resultados[i, j] = acc
+# Hacemos Validación cruzada para analizar tambien la estabilidad de haber
+#elegido esos atributos (celdas de pixel) en particular
+# Notese que usamos StratifiedKFold para que nos mantenga la estratificacion 
+#pero ahora para los casos de Validación Cruzada
+nsplits = 5
+skf = StratifiedKFold(n_splits=nsplits)
 
-# La matriz resultados que nos queda es el valor de la metrica 
-#accuracy en el fold i (0 =< i < 5), en la prueba j (0 <= j < 10)
+# Creamos una matriz de resultados en los cuales su cantidad de columnas j serán
+#la prueba hecha en un fold con cada serie de 3 columnas, mientras que las filas i serán
+#los 5 folds que elegimos
+resultados = np.zeros((nsplits, len(columnas)))
+
+
+
+for i, (train_index, test_index) in enumerate(skf.split(x_train, y_train)):
+    kf_x_train, kf_x_test = x_train.iloc[train_index], x_train.iloc[test_index]
+    kf_y_train, kf_y_test = y_train.iloc[train_index], y_train.iloc[test_index]
+    for j in range(len(columnas)):
+        columnas_elegidas = columnas[j]
+        x_train_columnas = kf_x_train.iloc[:, columnas_elegidas]
+        x_test_columnas  = kf_x_test.iloc[:, columnas_elegidas]
+        
+        clasificador = KNeighborsClassifier(n_neighbors=3)
+        clasificador.fit(x_train_columnas, kf_y_train)
+        prediccion = clasificador.predict(x_test_columnas)
+        accuracy = accuracy_score(kf_y_test, prediccion)
+        resultados[i, j] = accuracy
+
+# La matriz resultados que nos queda es el valor de la metrica accuracy en el 
+#fold i (0 =< i < 5), en la prueba (cuales columnas) j (0 <= j < 10)
+#%%
+# Calculamos su promedio y elegimos la serie de columnas con mejor promedio.
+resultados_promedio = resultados.mean(axis = 0)
+
+# Nos queda la serie de columnas j = 3 ([323,324,325]) es la que que tuvo mas
+#estabilidad en su medida de accuracy. Por lo tanto hacemos calculamos x_test 
+#con j = 3
+#%%
+# Elegimos dentro de nuestros datos de train y test la serie de columnas deseada
+x_train_elegido = x_train.iloc[:, columnas[3]]
+x_test_elegido = x_test.iloc[:, columnas[3]]
+
+# Entrenamos el modelo con los x_train_elegido y luego evaluamos con el 
+#x_test_elegido, para ver su accuracy
+clasificador_test = KNeighborsClassifier(n_neighbors = 3)
+clasificador_test.fit(x_train_elegido, y_train)
+y_pred_test = clasificador_test.predict(x_test_elegido)
+accuracy_real = accuracy_score(y_test, y_pred_test)
+print(str(accuracy_real))
+# Notese que el accuracy_real nos dio un numero muy parecido al promedio de los
+#folds hechos con la serie de columnas j = 3.
