@@ -280,74 +280,7 @@ y = df2['label']
 #proporción por clase de datos
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=12, stratify = y)
 
-#%% 2.c)  
 
-# Elegimos probar en algunas series de columnas particulares en las cuales 
-#vimos diferencias en el pixel promedio
-columnas = [
-    [80, 81, 82],
-    [110, 111, 112],
-    [200, 201, 202],
-    [323, 324, 325],
-    [425, 426, 427],
-    [450, 451, 452],
-    [500, 501, 502],
-    [550, 551, 552],
-    [600, 601, 602],
-    [640, 641, 642]
-]
-
-# Hacemos Validación cruzada para analizar tambien la estabilidad de haber
-#elegido esos atributos (celdas de pixel) en particular
-# Notese que usamos StratifiedKFold para que nos mantenga la estratificacion 
-#pero ahora para los casos de Validación Cruzada
-nsplits = 5
-skf = StratifiedKFold(n_splits=nsplits)
-
-# Creamos una matriz de resultados en los cuales su cantidad de columnas j serán
-#la prueba hecha en un fold con cada serie de 3 columnas, mientras que las filas i serán
-#los 5 folds que elegimos
-resultados = np.zeros((nsplits, len(columnas)))
-
-
-
-for i, (train_index, test_index) in enumerate(skf.split(x_train, y_train)):
-    kf_x_train, kf_x_test = x_train.iloc[train_index], x_train.iloc[test_index]
-    kf_y_train, kf_y_test = y_train.iloc[train_index], y_train.iloc[test_index]
-    for j in range(len(columnas)):
-        columnas_elegidas = columnas[j]
-        x_train_columnas = kf_x_train.iloc[:, columnas_elegidas]
-        x_test_columnas  = kf_x_test.iloc[:, columnas_elegidas]
-        
-        clasificador = KNeighborsClassifier(n_neighbors=3)
-        clasificador.fit(x_train_columnas, kf_y_train)
-        prediccion = clasificador.predict(x_test_columnas)
-        accuracy = accuracy_score(kf_y_test, prediccion)
-        resultados[i, j] = accuracy
-
-# La matriz resultados que nos queda es el valor de la metrica accuracy en el 
-#fold i (0 =< i < 5), en la prueba (cuales columnas) j (0 <= j < 10)
-#%%
-# Calculamos su promedio y elegimos la serie de columnas con mejor promedio.
-resultados_promedio = resultados.mean(axis = 0)
-
-# Nos queda la serie de columnas j = 3 ([323,324,325]) es la que que tuvo mas
-#estabilidad en su medida de accuracy. Por lo tanto hacemos calculamos x_test 
-#con j = 3
-#%%
-# Elegimos dentro de nuestros datos de train y test la serie de columnas deseada
-x_train_elegido = x_train.iloc[:, columnas[3]]
-x_test_elegido = x_test.iloc[:, columnas[3]]
-
-# Entrenamos el modelo con los x_train_elegido y luego evaluamos con el 
-#x_test_elegido, para ver su accuracy
-clasificador_test = KNeighborsClassifier(n_neighbors = 3)
-clasificador_test.fit(x_train_elegido, y_train)
-y_pred_test = clasificador_test.predict(x_test_elegido)
-accuracy_real = accuracy_score(y_test, y_pred_test)
-print(str(accuracy_real))
-# Notese que el accuracy_real nos dio un numero muy parecido al promedio de los
-#folds hechos con la serie de columnas j = 3.
 #%% 2.c) BIEN HECHO
 # Elegimos probar en algunas series de columnas particulares en las cuales 
 #vimos diferencias en el pixel promedio entre las dos clases
@@ -447,12 +380,108 @@ for i in range(len(columnas3)):
     precision = accuracy_score(y_test, prediccion)
     resultados3[i] = precision
 
+# Notese que por resultados 3 mejoro mucho la precision.
+#%%
+# Por último vamos a repetir nuestro experimento pero para 15 celdas de pixeles,
+#continuando con las celdas de la prueba anterior.
+
+columnas4 = [
+    [100,101,102,103,104,105,106,107,108,109,110,111,113,114,115],
+    [125,126,127,128,129,130,131,132,133,134,135,136,137,138,139],
+    [200,201,202,203,204,205,206,207,208,209,210,211,212,213,214],
+    [323,324,325,326,327,328,329,330,331,332,333,334,335,336,337],
+    [425,426,427,428,429,430,431,432,433,434,435,436,437,438,439],
+    [450,451,452,453,454,455,456,457,458,459,460,461,462,463,464],
+    [500,501,502,503,504,505,506,507,508,509,510,511,512,513,514],
+    [550,551,552,553,554,555,556,557,558,559,560,561,562,563,564],
+    [600,601,602,603,604,605,606,607,608,609,610,611,612,613,614],
+    [625,626,627,628,629,630,631,632,633,634,635,636,637,638,639]
+]
+
+resultados4 = np.zeros(len(columnas2))
+
+for i in range(len(columnas4)):
+    columnas_elegidas = columnas4[i]
+    x_train_columnas = x_train.iloc[:, columnas_elegidas]
+    x_test_columnas  = x_test.iloc[:, columnas_elegidas]
+    clasificador = KNeighborsClassifier(n_neighbors=3)
+    clasificador.fit(x_train_columnas, y_train)
+    prediccion = clasificador.predict(x_test_columnas)
+    precision = accuracy_score(y_test, prediccion)
+    resultados4[i] = precision
+
+#Notese que casi todas las precisiones de resultados 3 a resultados4 mejoraron.
+
+
+#%% 2.c)  MAL HECHO
+
+# Elegimos probar en algunas series de columnas particulares en las cuales 
+#vimos diferencias en el pixel promedio
+columnas = [
+    [80, 81, 82],
+    [110, 111, 112],
+    [200, 201, 202],
+    [323, 324, 325],
+    [425, 426, 427],
+    [450, 451, 452],
+    [500, 501, 502],
+    [550, 551, 552],
+    [600, 601, 602],
+    [640, 641, 642]
+]
+
+# Hacemos Validación cruzada para analizar tambien la estabilidad de haber
+#elegido esos atributos (celdas de pixel) en particular
+# Notese que usamos StratifiedKFold para que nos mantenga la estratificacion 
+#pero ahora para los casos de Validación Cruzada
+nsplits = 5
+skf = StratifiedKFold(n_splits=nsplits)
+
+# Creamos una matriz de resultados en los cuales su cantidad de columnas j serán
+#la prueba hecha en un fold con cada serie de 3 columnas, mientras que las filas i serán
+#los 5 folds que elegimos
+resultados = np.zeros((nsplits, len(columnas)))
 
 
 
+for i, (train_index, test_index) in enumerate(skf.split(x_train, y_train)):
+    kf_x_train, kf_x_test = x_train.iloc[train_index], x_train.iloc[test_index]
+    kf_y_train, kf_y_test = y_train.iloc[train_index], y_train.iloc[test_index]
+    for j in range(len(columnas)):
+        columnas_elegidas = columnas[j]
+        x_train_columnas = kf_x_train.iloc[:, columnas_elegidas]
+        x_test_columnas  = kf_x_test.iloc[:, columnas_elegidas]
+        
+        clasificador = KNeighborsClassifier(n_neighbors=3)
+        clasificador.fit(x_train_columnas, kf_y_train)
+        prediccion = clasificador.predict(x_test_columnas)
+        accuracy = accuracy_score(kf_y_test, prediccion)
+        resultados[i, j] = accuracy
 
+# La matriz resultados que nos queda es el valor de la metrica accuracy en el 
+#fold i (0 =< i < 5), en la prueba (cuales columnas) j (0 <= j < 10)
 
+# Calculamos su promedio y elegimos la serie de columnas con mejor promedio.
+resultados_promedio = resultados.mean(axis = 0)
 
+# Nos queda la serie de columnas j = 3 ([323,324,325]) es la que que tuvo mas
+#estabilidad en su medida de accuracy. Por lo tanto hacemos calculamos x_test 
+
+# Elegimos dentro de nuestros datos de train y test la serie de columnas deseada
+x_train_elegido = x_train.iloc[:, columnas[3]]
+x_test_elegido = x_test.iloc[:, columnas[3]]
+
+# Entrenamos el modelo con los x_train_elegido y luego evaluamos con el 
+#x_test_elegido, para ver su accuracy
+clasificador_test = KNeighborsClassifier(n_neighbors = 3)
+clasificador_test.fit(x_train_elegido, y_train)
+y_pred_test = clasificador_test.predict(x_test_elegido)
+accuracy_real = accuracy_score(y_test, y_pred_test)
+print(str(accuracy_real))
+# Notese que el accuracy_real nos dio un numero muy parecido al promedio de los
+#folds hechos con la serie de columnas j = 3.
+
+#%% 2.d)
 
 
 

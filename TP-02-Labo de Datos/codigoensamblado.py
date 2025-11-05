@@ -341,7 +341,7 @@ print(str(accuracy_real))
 #%% 2.c) BIEN HECHO
 # Elegimos probar en algunas series de columnas particulares en las cuales 
 #vimos diferencias en el pixel promedio entre las dos clases
-columnas = [
+columnas1 = [
     [80, 81, 82],
     [110, 111, 112],
     [200, 201, 202],
@@ -357,10 +357,10 @@ columnas = [
 # Cargamos los datos de resultados en un array en el cual vamos a guardar la
 #precision de cada elemento de columnas una vez entrenado el modelo con los 
 #datos de train, y testeado con los de test.
-resultados = np.zeros(len(columnas))
+resultados = np.zeros(len(columnas1))
 
-for i in range(len(columnas)):
-    columnas_elegidas = columnas[i]
+for i in range(len(columnas1)):
+    columnas_elegidas = columnas1[i]
     x_train_columnas = x_train.iloc[:, columnas_elegidas]
     x_test_columnas  = x_test.iloc[:, columnas_elegidas]
     clasificador = KNeighborsClassifier(n_neighbors=3)
@@ -371,3 +371,102 @@ for i in range(len(columnas)):
 
 # Notese que la mejor precision es la de la serie de columnas 7, que toma los
 #valores [550, 551, 552].
+
+#%%
+# Volvemos a hacer el mismo procedimiento pero ahora para series de  celdas 
+#continuas de 5 elementos. Elegimos continuar con las series de 3 columnas que
+#dieron un buen numero de precision en el ejercicio anterior, y agregar otras 
+#que nos parezcan que puedan ser relevantes.
+
+columnas2 = [
+    [100,101,102,103,104],
+    [125,126,127,128,129],
+    [200,201,202,203,204],
+    [323,324,325,326,327],
+    [425,426,427,428,429],
+    [450,451,452,453,454],
+    [500,501,502,503,504],
+    [550,551,552,553,554],
+    [600,601,602,603,604],
+    [625,626,627,628,629]
+]
+
+resultados2 = np.zeros(len(columnas2))
+
+for i in range(len(columnas2)):
+    columnas_elegidas = columnas2[i]
+    x_train_columnas = x_train.iloc[:, columnas_elegidas]
+    x_test_columnas  = x_test.iloc[:, columnas_elegidas]
+    clasificador = KNeighborsClassifier(n_neighbors=3)
+    clasificador.fit(x_train_columnas, y_train)
+    prediccion = clasificador.predict(x_test_columnas)
+    precision = accuracy_score(y_test, prediccion)
+    resultados2[i] = precision
+
+# Notese que la mejor precision del anterior ejercicio que la serie de columnas
+# 7, que toma los valores [550, 551, 552], ahora que le agregamos dos atributos
+#continuos mas la precision ([550,551,552,553,554]) nos quedo mucho menor. Paso 
+#de 0.733214 a 0.497143. Esto sugiere que esta cantidad de atributos elegida es
+#poca para definir el modelo knn, o que son pocos la cantidad de vecinos elegida.
+#%% 
+# Ahora elegimos los mismos valores anteriores pero para series de 10 valores
+#continuos de celdas de pixel (o atributos).
+
+columnas3 = [
+    [100,101,102,103,104,105,106,107,108,109],
+    [125,126,127,128,129,130,131,132,133,134],
+    [200,201,202,203,204,205,206,207,208,209],
+    [323,324,325,326,327,328,329,330,331,332],
+    [425,426,427,428,429,430,431,432,433,434],
+    [450,451,452,453,454,455,456,457,458,459],
+    [500,501,502,503,504,505,506,507,508,509],
+    [550,551,552,553,554,555,556,557,558,559],
+    [600,601,602,603,604,605,606,607,608,609],
+    [625,626,627,628,629,630,631,632,633,634]
+]
+
+resultados3 = np.zeros(len(columnas2)) 
+
+for i in range(len(columnas3)):
+    columnas_elegidas = columnas3[i]
+    x_train_columnas = x_train.iloc[:, columnas_elegidas]
+    x_test_columnas  = x_test.iloc[:, columnas_elegidas]
+    clasificador = KNeighborsClassifier(n_neighbors=3)
+    clasificador.fit(x_train_columnas, y_train)
+    prediccion = clasificador.predict(x_test_columnas)
+    precision = accuracy_score(y_test, prediccion)
+    resultados3[i] = precision
+
+# Notese que por resultados 3 mejoro mucho la precision.
+#%%
+# Por último vamos a repetir nuestro experimento pero para 15 celdas de pixeles,
+#continuando con las celdas de la prueba anterior.
+
+columnas4 = [
+    [100,101,102,103,104,105,106,107,108,109,110,111,113,114,115],
+    [125,126,127,128,129,130,131,132,133,134,135,136,137,138,139],
+    [200,201,202,203,204,205,206,207,208,209,210,211,212,213,214],
+    [323,324,325,326,327,328,329,330,331,332,333,334,335,336,337],
+    [425,426,427,428,429,430,431,432,433,434,435,436,437,438,439],
+    [450,451,452,453,454,455,456,457,458,459,460,461,462,463,464],
+    [500,501,502,503,504,505,506,507,508,509,510,511,512,513,514],
+    [550,551,552,553,554,555,556,557,558,559,560,561,562,563,564],
+    [600,601,602,603,604,605,606,607,608,609,610,611,612,613,614],
+    [625,626,627,628,629,630,631,632,633,634,635,636,637,638,639]
+]
+
+resultados4 = np.zeros(len(columnas2))
+
+for i in range(len(columnas4)):
+    columnas_elegidas = columnas4[i]
+    x_train_columnas = x_train.iloc[:, columnas_elegidas]
+    x_test_columnas  = x_test.iloc[:, columnas_elegidas]
+    clasificador = KNeighborsClassifier(n_neighbors=3)
+    clasificador.fit(x_train_columnas, y_train)
+    prediccion = clasificador.predict(x_test_columnas)
+    precision = accuracy_score(y_test, prediccion)
+    resultados4[i] = precision
+
+#Notese que casi todas las precisiones de resultados 3 a resultados4 mejoraron.
+
+#%% 2.d)
