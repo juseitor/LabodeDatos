@@ -348,6 +348,52 @@ accuracy_real = accuracy_score(y_test, y_pred_test)
 print(str(accuracy_real))
 # Notese que el accuracy_real nos dio un numero muy parecido al promedio de los
 #folds hechos con la serie de columnas j = 3.
+#%% 2.c) BIEN HECHO
+# Elegimos probar en algunas series de columnas particulares en las cuales 
+#vimos diferencias en el pixel promedio entre las dos clases
+columnas = [
+    [80, 81, 82],
+    [110, 111, 112],
+    [200, 201, 202],
+    [323, 324, 325],
+    [425, 426, 427],
+    [450, 451, 452],
+    [500, 501, 502],
+    [550, 551, 552],
+    [600, 601, 602],
+    [640, 641, 642]
+]
+
+# Cargamos los datos de resultados en un array en el cual vamos a guardar la
+#precision de cada elemento de columnas una vez entrenado el modelo con los 
+#datos de train, y testeado con los de test.
+resultados = np.zeros(len(columnas))
+
+for i in range(len(columnas)):
+    columnas_elegidas = columnas[i]
+    x_train_columnas = x_train.iloc[:, columnas_elegidas]
+    x_test_columnas  = x_test.iloc[:, columnas_elegidas]
+    clasificador = KNeighborsClassifier(n_neighbors=3)
+    clasificador.fit(x_train_columnas, y_train)
+    prediccion = clasificador.predict(x_test_columnas)
+    precision = accuracy_score(y_test, prediccion)
+    resultados[i] = precision
+
+# Notese que la mejor precision es la de la serie de columnas 7, que toma los
+#valores [550, 551, 552].
+
+#%% 2.c) 
+# Volvemos a hacer el mismo procedimiento pero ahora para series de  celdas 
+#continuas de 5 elementos. Elegimos una serie continua de columnas[3] ya que 
+#es la que nos dio con mejor precisión.
+
+
+
+
+
+
+
+
 
 
 
