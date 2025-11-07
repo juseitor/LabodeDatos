@@ -277,9 +277,8 @@ x = df2.drop(columns=['label'])
 y = df2['label']
 
 # Notese que estratificamos los casos de train y test para que mantengan la 
-#proporción por clase de datos
+#proporción de datos por clases
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=12, stratify = y)
-
 
 #%% 2.c) BIEN HECHO
 # Elegimos probar en algunas series de columnas particulares en las cuales 
@@ -411,6 +410,41 @@ for i in range(len(columnas4)):
     resultados4[i] = precision
 
 #Notese que casi todas las precisiones de resultados 3 a resultados4 mejoraron.
+
+#%% 2.d)
+
+# Primero vamos a utilizar la ultima lista columnas4 para probar un modelo knn
+#con distinta cantidad de vecinos
+
+# Cuantos vecinos vamos a utilizar por cada ciclo
+vecinos = [3,5,8,10,15]
+
+# Matriz de resultados. 
+resultados2_c = np.zeros(len(vecinos), len(columnas4))
+
+for j in range(len(columnas4)):
+    columnas_elegidas = columnas4[j]
+    x_train_columnas = x_train.iloc[:, columnas_elegidas]
+    x_test_columnas = x_test.iloc[:, columnas_elegidas]
+    for i in range(len(vecinos)):
+        clasificador = KNeighborsClassifier(n_neighbors = vecinos[j])
+        clasificador.fit(x_train_columnas, y_train)
+        prediccion = clasificador.predict(x_test_columnas)
+        precision = accuracy_score(y_test, prediccion)
+        resultados2_c[i,j] = precision
+
+#%%
+
+
+
+
+
+
+
+
+
+
+
 
 
 #%% 2.c)  MAL HECHO
