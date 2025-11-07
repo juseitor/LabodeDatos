@@ -272,7 +272,8 @@ df2 = df_kuzu[(df_kuzu['label'] == 5) | (df_kuzu['label'] == 4)]
 
 #%% 2.b) 
 
-# Separamos en datos de entrenamiento (75% de los mismos), y de test (el restante 25%)
+# Separamos en datos de entrenamiento (80% de los mismos), y de test (el 
+#restante 20%)
 x = df2.drop(columns=['label'])
 y = df2['label']
 
@@ -280,9 +281,10 @@ y = df2['label']
 #proporción de datos por clases
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=12, stratify = y)
 
-#%% 2.c) BIEN HECHO
-# Elegimos probar en algunas series de columnas particulares en las cuales 
-#vimos diferencias en el pixel promedio entre las dos clases
+#%% 2.c) 
+
+# Elegimos probar en algunas series de columnas continuas particulares en las 
+#cuales vimos diferencias en el pixel promedio entre las dos clases
 columnas1 = [
     [80, 81, 82],
     [110, 111, 112],
@@ -299,7 +301,7 @@ columnas1 = [
 # Cargamos los datos de resultados en un array en el cual vamos a guardar la
 #precision de cada elemento de columnas una vez entrenado el modelo con los 
 #datos de train, y testeado con los de test.
-resultados = np.zeros(len(columnas1))
+resultados_2c_1 = np.zeros(len(columnas1))
 
 for i in range(len(columnas1)):
     columnas_elegidas = columnas1[i]
@@ -308,17 +310,16 @@ for i in range(len(columnas1)):
     clasificador = KNeighborsClassifier(n_neighbors=3)
     clasificador.fit(x_train_columnas, y_train)
     prediccion = clasificador.predict(x_test_columnas)
-    precision = accuracy_score(y_test, prediccion)
-    resultados[i] = precision
+    exactitud = accuracy_score(y_test, prediccion)
+    resultados_2c_1[i] = exactitud
 
-# Notese que la mejor precision es la de la serie de columnas 7, que toma los
-#valores [550, 551, 552].
-
+# Notese que el mayour valor de exactitud es la de la serie de columnas 7, 
+#que toma los valores [550, 551, 552].
 #%%
 # Volvemos a hacer el mismo procedimiento pero ahora para series de  celdas 
 #continuas de 5 elementos. Elegimos continuar con las series de 3 columnas que
-#dieron un buen numero de precision en el ejercicio anterior, y agregar otras 
-#que nos parezcan que puedan ser relevantes.
+#dieron un numero de exactitud mayor a 0.6 en la celda anterior, y reemplazar 
+#algunas series de columnas que dieron un numero de exactitud menor a 0.6.
 
 columnas2 = [
     [100,101,102,103,104],
@@ -333,7 +334,7 @@ columnas2 = [
     [625,626,627,628,629]
 ]
 
-resultados2 = np.zeros(len(columnas2))
+resultados_2c_2 = np.zeros(len(columnas2))
 
 for i in range(len(columnas2)):
     columnas_elegidas = columnas2[i]
@@ -342,17 +343,19 @@ for i in range(len(columnas2)):
     clasificador = KNeighborsClassifier(n_neighbors=3)
     clasificador.fit(x_train_columnas, y_train)
     prediccion = clasificador.predict(x_test_columnas)
-    precision = accuracy_score(y_test, prediccion)
-    resultados2[i] = precision
+    exactitud = accuracy_score(y_test, prediccion)
+    resultados_2c_2[i] = exactitud
 
 # Notese que la mejor precision del anterior ejercicio que la serie de columnas
-# 7, que toma los valores [550, 551, 552], ahora que le agregamos dos atributos
-#continuos mas la precision ([550,551,552,553,554]) nos quedo mucho menor. Paso 
-#de 0.733214 a 0.497143. Esto sugiere que esta cantidad de atributos elegida es
-#poca para definir el modelo knn, o que son pocos la cantidad de vecinos elegida.
+#7, que toma los valores [550, 551, 552], ahora que le agregamos dos atributos
+#continuos mas la precision ([550,551,552,553,554]) nos quedo considerablemente
+#menor. Paso de 0.733 a 0.497. Esto sugiere que esta cantidad de atributos 
+#elegida es poca para definir el modelo knn, o que son pocos la cantidad de 
+#vecinos elegida.
 #%% 
-# Ahora elegimos los mismos valores anteriores pero para series de 10 valores
-#continuos de celdas de pixel (o atributos).
+# Ahora hacemos una prueba con la continuacion de las series de columnas
+#continuas de la celda anterior, pero para series de 10 valores continuos de 
+#celdas de pixel (o atributos).
 
 columnas3 = [
     [100,101,102,103,104,105,106,107,108,109],
@@ -367,7 +370,7 @@ columnas3 = [
     [625,626,627,628,629,630,631,632,633,634]
 ]
 
-resultados3 = np.zeros(len(columnas2))
+resultados_2c_3 = np.zeros(len(columnas2))
 
 for i in range(len(columnas3)):
     columnas_elegidas = columnas3[i]
@@ -376,13 +379,13 @@ for i in range(len(columnas3)):
     clasificador = KNeighborsClassifier(n_neighbors=3)
     clasificador.fit(x_train_columnas, y_train)
     prediccion = clasificador.predict(x_test_columnas)
-    precision = accuracy_score(y_test, prediccion)
-    resultados3[i] = precision
+    exactitud = accuracy_score(y_test, prediccion)
+    resultados_2c_3[i] = exactitud
 
-# Notese que por resultados 3 mejoro mucho la precision.
+# Notese que por resultados 3 mejoro mucho la exactitud.
 #%%
-# Por último vamos a repetir nuestro experimento pero para 15 celdas de pixeles,
-#continuando con las celdas de la prueba anterior.
+# Por último vamos a repetir nuestro experimento pero continuando con las 
+#series de columnas anteriores pero para 15 celdas de pixeles.
 
 columnas4 = [
     [100,101,102,103,104,105,106,107,108,109,110,111,113,114,115],
@@ -397,7 +400,7 @@ columnas4 = [
     [625,626,627,628,629,630,631,632,633,634,635,636,637,638,639]
 ]
 
-resultados4 = np.zeros(len(columnas2))
+resultados_2c_4 = np.zeros(len(columnas2))
 
 for i in range(len(columnas4)):
     columnas_elegidas = columnas4[i]
@@ -406,35 +409,43 @@ for i in range(len(columnas4)):
     clasificador = KNeighborsClassifier(n_neighbors=3)
     clasificador.fit(x_train_columnas, y_train)
     prediccion = clasificador.predict(x_test_columnas)
-    precision = accuracy_score(y_test, prediccion)
-    resultados4[i] = precision
+    exactitud = accuracy_score(y_test, prediccion)
+    resultados_2c_4[i] = exactitud
 
-#Notese que casi todas las precisiones de resultados 3 a resultados4 mejoraron.
+# Notese que hubieron algunos valores de exactitud de resultados_2c_3 los 
+#cuales aumentaron con respecto a resultados_2c_3, pero otros disminuyeron.
 
 #%% 2.d)
 
-# Primero vamos a utilizar la ultima lista columnas4 para probar un modelo knn
-#con distinta cantidad de vecinos
+# Primero vamos a utilizar la ultima lista columnas4 para probar modelos de 
+#claisficacion knn para distinta cantidad de vecinos
 
 # Cuantos vecinos vamos a utilizar por cada ciclo
-vecinos = [3,5,8,10,15]
+vecinos = [3,5,8,10,15,20,25,50]
 
-# Matriz de resultados. 
-resultados2_c = np.zeros(len(vecinos), len(columnas4))
+# Matriz de resultados. Las columnas j seran los indices de las columnas 
+#elegidas de columnas4, mientras que las filas i seran la precision que 
+#arroja el modelo con la cantidad de vecinos[i] elegidos.
+resultados_2d = np.zeros((len(vecinos), len(columnas4)))
 
 for j in range(len(columnas4)):
     columnas_elegidas = columnas4[j]
     x_train_columnas = x_train.iloc[:, columnas_elegidas]
     x_test_columnas = x_test.iloc[:, columnas_elegidas]
     for i in range(len(vecinos)):
-        clasificador = KNeighborsClassifier(n_neighbors = vecinos[j])
+        clasificador = KNeighborsClassifier(n_neighbors = vecinos[i])
         clasificador.fit(x_train_columnas, y_train)
         prediccion = clasificador.predict(x_test_columnas)
-        precision = accuracy_score(y_test, prediccion)
-        resultados2_c[i,j] = precision
+        exactitud = accuracy_score(y_test, prediccion)
+        resultados_2d[i,j] = exactitud
 
+# Vemos que dentro de una serie continua de columnas de columna4[j], a medida 
+#que aumentamos la cantidad de vecinos elegida para algunos casos mejora la 
+#metrica exactitud, pero para otros casos empeora ligeramente. Incluso podemos 
+#observar que para todas las columnas elegidas salvo un caso (columnas[7]), 
+#cuando pasamos el modelo KNN de 25 a 50 vecinos (filas 6 a 7), baja 
+#ligeramente el valor de exactitud.
 #%%
-
 
 
 
