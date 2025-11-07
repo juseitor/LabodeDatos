@@ -13,43 +13,16 @@ from sklearn.model_selection import train_test_split
 df_minst = pd.read_csv('~/Escritorio/kmnist_classmap_char.csv')
 df_kuzu = pd.read_csv('~/Escritorio/kuzushiji_full.csv')
 
-#%%
+#%%                            EJERCICIO 1 
+#%%  
+# TODO ESTO PARA CREAR EL DATAFRAME forma_por_clase
+# ESTAS VARIABLES ESTAN EN CON LA PRIMER LETRA EN MAYUCULA PARA QUE PUEDAD FILTRAR EN EL SPYDER
 
-fig, ax = plt.subplots(figsize = (18,10))
 
-sns.kdeplot(
-    data = df_kuzu,
-    x = '755',
-    fill = False,
-    hue = 'label',
-    palette = "Paired",
-    linewidth = 3,
-    ax = ax
-    )
-
-ax.set_title("Frecuencia de pixels")
-ax.set_xlabel("Pixels")
-ax.set_ylabel("Frecuencia de Pixel")
+#%% 
+Res = []
 
 #%%
-
-#
-# Clase 0 -> celda 68 al 70 (valor pixel 0)
-# Clase 1 -> celda 423 (valor pixel 0)
-# 
-# Clase 3 -> celda 489 (valor pixel 0)
-# Clase 4 -> celda 179
-# Clase 5 -> celda 382 (valor pixel 0)
-# Clase 6 -> celda 511 (valor pixel 0)
-# Clase 7 -> celda 318
-#
-#
-#
-
-#%%
-
-res = []
-
 Class0 = """
             SELECT *
             FROM df_kuzu
@@ -59,14 +32,14 @@ Class0 = db.query(Class0).df()
 
 Dic0 = {}
 
-for i in Class0.iloc[:, :-1].columns:
-    Dic0[i] = Class0[i].sum()
+for I in Class0.iloc[:, :-1].columns:
+    Dic0[I] = Class0[I].mean() 
 
 Dic0['label'] = 0
 
-res.append(Dic0)
+Res.append(Dic0)
 
-
+#%%
 Class1 = """
             SELECT *
             FROM df_kuzu
@@ -76,14 +49,14 @@ Class1 = db.query(Class1).df()
 
 Dic1 = {}
 
-for i in Class1.iloc[:, :-1].columns:
-    Dic1[i] = Class1[i].sum()
+for I in Class1.iloc[:, :-1].columns:
+    Dic1[I] = Class1[I].mean() 
 
 Dic1['label'] = 1
 
-res.append(Dic1)
+Res.append(Dic1)
 
-
+#%%
 
 Class2 = """
             SELECT *
@@ -94,13 +67,13 @@ Class2 = db.query(Class2).df()
 
 Dic2 = {}
 
-for i in Class2.iloc[:, :-1].columns:
-    Dic2[i] = Class2[i].sum()
+for I in Class2.iloc[:, :-1].columns:
+    Dic2[I] = Class2[I].mean() 
 
 Dic2['label'] = 2
-res.append(Dic2)
+Res.append(Dic2)
 
-
+#%%
 
 Class3 = """
             SELECT *
@@ -112,16 +85,15 @@ Class3 = db.query(Class3).df()
 
 Dic3 = {}
 
-for i in Class3.iloc[:, :-1].columns:
-    Dic3[i] = Class3[i].sum()
+for I in Class3.iloc[:, :-1].columns:
+    Dic3[I] = Class3[I].mean() 
 
 
 Dic3['label'] = 3
 
-res.append(Dic3)
-    
+Res.append(Dic3)
 
-
+#%%
 
 Class4 = """
             SELECT *
@@ -132,15 +104,14 @@ Class4 = db.query(Class4).df()
 
 Dic4 = {}
 
-for i in Class4.iloc[:, :-1].columns:
-    Dic4[i] = Class4[i].sum()
+for I in Class4.iloc[:, :-1].columns:
+    Dic4[I] = Class4[I].mean() 
 
 
 Dic4['label'] = 4
-res.append(Dic4)
+Res.append(Dic4)
 
-
-
+#%%
 
 Class5 = """
             SELECT *
@@ -151,15 +122,14 @@ Class5 = db.query(Class5).df()
 
 Dic5 = {}
 
-for i in Class5.iloc[:, :-1].columns:
-    Dic5[i] = Class5[i].sum()
+for I in Class5.iloc[:, :-1].columns:
+    Dic5[I] = Class5[I].mean() 
 
 
 Dic5['label'] = 5
-res.append(Dic5)
+Res.append(Dic5)
 
-
-
+#%%
 
 Class6 = """
             SELECT *
@@ -170,15 +140,14 @@ Class6 = db.query(Class6).df()
 
 Dic6 = {}
 
-for i in Class6.iloc[:, :-1].columns:
-    Dic6[i] = Class6[i].sum()
+for I in Class6.iloc[:, :-1].columns:
+    Dic6[I] = Class6[I].mean() 
 
 
 Dic6['label'] = 6
-res.append(Dic6)
-  
-    
+Res.append(Dic6)
 
+#%%
 
 Class7 = """
             SELECT *
@@ -189,14 +158,14 @@ Class7 = db.query(Class7).df()
 
 Dic7 = {}
 
-for i in Class7.iloc[:, :-1].columns:
-    Dic7[i] = Class7[i].sum()
+for I in Class7.iloc[:, :-1].columns:
+    Dic7[I] = Class7[I].mean() 
 
 
 Dic7['label'] = 7
-res.append(Dic7)
+Res.append(Dic7)
 
-
+#%%
 
 Class8 = """
             SELECT *
@@ -207,14 +176,14 @@ Class8 = db.query(Class8).df()
 
 Dic8 = {}
 
-for i in Class8.iloc[:, :-1].columns:
-    Dic8[i] = Class8[i].sum()
+for I in Class8.iloc[:, :-1].columns:
+    Dic8[I] = Class8[I].mean() 
 
 
 Dic8['label'] = 8
-res.append(Dic8)
+Res.append(Dic8)
 
-
+#%%
 
 Class9 = """
             SELECT *
@@ -225,50 +194,324 @@ Class9 = db.query(Class9).df()
 
 Dic9 = {}
 
-for i in Class9.iloc[:, :-1].columns:
-    Dic9[i] = Class9[i].sum()
+for I in Class9.iloc[:, :-1].columns:
+    Dic9[I] = Class9[I].mean() 
 
 
 Dic9['label'] = 9  
-res.append(Dic9)
+Res.append(Dic9)
+
+#%%      DATAFRAME FORMAS PROMEDIO POR CLASES 
+
+forma_por_clase = pd.DataFrame(Res)
+
+#%%  
+# ELIMINO LA COLUMNA LABEL (CLASE)
+kuzu = forma_por_clase.iloc[:, :-1] 
+
+#%%              GRAFICOS SOBRE LAS 10 CLASES    
+#%% PODEMOS VER SI LA DISTRIBUCION EN CANTIDAD DE PIXELES ES PARECIDA/SIMILAR 
+
+clases_transpuesta = kuzu.T 
+
+clases_transpuesta.boxplot()
+plt.title("Distribución de pixeles por clase")
+plt.xlabel("clase")
+plt.ylabel("valor maximo por clase")
+plt.show()
+
+#%% GRAFICO DE LINEA POR CLASE
+
+for K in range(len(kuzu)):
+    plt.plot(range(784), kuzu.iloc[K])
+    plt.title("Cantidad promedio de pixeles por celda - clase "+str(K))
+    plt.xlabel("celda de pixeles")
+    plt.ylabel("valor promedio")
+    plt.show()
+
+
+#%%  HISTOGRAMA POR CLASE
+
+for I in range(len(kuzu)):
     
-df_final = pd.DataFrame(res)
-#%%
-#%%  IMAGENES DE LAS LETRAS(LABEL) 
-
-kuzu = df_final.iloc[:, :-1] 
+    GR_CLASES = kuzu.iloc[I]
+    GR_CLASES = GR_CLASES.tolist()
+    GR_CLASES = np.array(GR_CLASES)
 
 
-# Plot imagen
-img = np.array(kuzu.iloc[4]).reshape((28,28))
-plt.imshow(img, cmap='gray')
+
+    plt.figure()
+    plt.hist(GR_CLASES, bins=20,edgecolor="black")
+    plt.title(" Histograma CLASE "+str(I))
+    plt.xlabel("Valor de píxel")
+    plt.ylabel("Frecuencia de ese valor de pixel")
+    plt.grid(alpha=0.15)
+    plt.show()
+    
+#%%  IMAGEN PROMEDIO POR CLASE
+
+for J in range(len(kuzu)):
+    # Plot imagen
+    img = np.array(kuzu.iloc[J]).reshape((28,28))
+    plt.imshow(img, cmap='gray')
+    plt.title("forma promedio clase "+str(J))
+    plt.show()
+
+#%%    B)
+#%%   GRAFICOS QUE USAMOS PARA DESCUBRIR LA SIMILITUD ENTRE LA CLASE 1 y 2
+
+#%%  BOXPLOT SOBRE LAS CLASES 1 Y 2
+
+Clases_1_2 = clases_transpuesta[[1,2]]
+
+Clases_1_2.boxplot()
+plt.title("Distribución de pixeles - clase 1 Y 2")
+plt.xlabel("clase")
+plt.ylabel("valor maximo por clase")
 plt.show()
 
 
 
+#%%  IMAGEN PROMEDIO DE LA CLASE 1 y 2 
+
+# Plot imagen
+img = np.array(kuzu.iloc[1]).reshape((28,28))
+plt.imshow(img, cmap='gray')
+plt.title("forma promedio clase 1")
+plt.show()
+
+# Plot imagen
+img = np.array(kuzu.iloc[2]).reshape((28,28))
+plt.imshow(img, cmap='gray')
+plt.title("forma promedio clase 2")
+plt.show()
+#%%  GRAFICO LINEA DE LA CLASE 1 Y 2
+
+plt.plot(range(784), kuzu.iloc[1], label="1")
+plt.plot(range(784),kuzu.iloc[2], label="2")
+plt.title("Cantidad promedio de pixeles por celda - clase 1 Y 2")
+plt.xlabel("celda de pixeles")
+plt.ylabel("valor promedio")
+plt.legend(title = "CLASE")
+plt.grid(alpha = 0.4)
+plt.show()
+
+#%% HISTOGRAMA CLASE 1 Y 2 
+    
+GR_CLASE1 = kuzu.iloc[1]
+GR_CLASE1 = GR_CLASE1.tolist()
+GR_CLASE1 = np.array(GR_CLASE1)
+
+GR_CLASE2 = kuzu.iloc[2]
+GR_CLASE2 = GR_CLASE2.tolist()
+GR_CLASE2 = np.array(GR_CLASE2)
+
+       
+plt.figure()
+plt.hist(GR_CLASE1, bins=20,edgecolor="black", alpha = 0.75, label="1")
+plt.hist(GR_CLASE2, bins=20,edgecolor="black", alpha = 0.75, label = "2")
+plt.title(" HISTOGRAMA CLASE 1 Y 2" )
+plt.xlabel("Valor de píxel")
+plt.ylabel("Frecuencia de ese valor de pixel")
+plt.legend(title="CLASES")
+plt.grid(alpha=0.15)
+plt.show()
+
+#%%   GRAFICOS QUE USAMOS PARA COMPARAR LA CLASE 2 Y 6
+
+#%%  BOXPLOT SOBRE LAS CLASES 2 Y 6
+
+Clases_0_7 = clases_transpuesta[[2,6]]
+
+Clases_0_7.boxplot()
+plt.title("Distribución de pixeles - clase 2 y 6")
+plt.xlabel("clase")
+plt.ylabel("valor maximo por clase")
+plt.show()
+
+
+#%%   IMAGEN PROMEDIO CLASE 0
+
+img = np.array(kuzu.iloc[2]).reshape((28,28))
+plt.imshow(img, cmap='gray')
+plt.title("forma promedio clase 2")
+plt.show()
+
+img = np.array(kuzu.iloc[6]).reshape((28,28))
+plt.imshow(img, cmap='gray')
+plt.title("forma promedio clase 6")
+plt.show()
+
+#%% GRAFICO DE LINEA CLASE 2 Y 6
+
+plt.plot(range(784), kuzu.iloc[6], label = "6")
+plt.plot(range(784), kuzu.iloc[2], label = "2")
+plt.title("Cantidad promedio de pixeles por celda - clase 2 Y 6")
+plt.xlabel("celda de pixeles")
+plt.ylabel("valor promedio")
+plt.legend(title = "CLASES")
+plt.show()
+
+#%% HISTOGRAMA CLASE 0 Y 7
+
+GR_CLASE6 = kuzu.iloc[6]
+GR_CLASE6 = GR_CLASE6.tolist()
+GR_CLASE6 = np.array(GR_CLASE6)
 
 
 
+plt.figure()
+plt.hist(GR_CLASE6, bins=20,edgecolor="black", alpha = 0.75,label = "6")
+plt.hist(GR_CLASE2, bins=20,edgecolor="black", alpha = 0.75, label = "2")
+plt.title(" HISTOGRAMA CLASE 2 Y 6")
+plt.xlabel("Valor de píxel")
+plt.ylabel("Frecuencia de ese valor de pixel")
+plt.legend(title = "CLASES")
+plt.grid(alpha=0.15)
+plt.show()
+    
+#%%  C) 
+#%%
+# TOMAMOS LA CLASE 8 PARA EL ANALISIS DE ESTE PUNTO
+A = [1211,1311,1411]
+B = [1511,1609,1611]
 
+#%% IMAGENES DEL GRUPO A 
 
+Caracter1211 = Class8.iloc[:, :-1].iloc[1211]
+Caracter1311 = Class8.iloc[:, :-1].iloc[1311]
+Caracter1411 = Class8.iloc[:, :-1].iloc[1411]
+    
+#forma de la letra
+Caracter1211 = np.array(Caracter1211).reshape((28,28))
+Caracter1311 = np.array(Caracter1311).reshape((28,28))
+Caracter1411 = np.array(Caracter1411).reshape((28,28))
 
+fig, A = plt.subplots(1, 3, figsize=(9, 8))
 
+A[0].imshow(Caracter1211 , cmap='gray')
+A[1].imshow(Caracter1311 , cmap='gray')
+A[2].imshow(Caracter1411 , cmap='gray')
 
+A[0].set_title("CLASE8 - Caracter 1211")
+A[1].set_title("CLASE8 - Caracter 1311")
+A[2].set_title("CLASE8 - Caracter 1411")
 
+plt.show() 
+    
+#%% IMAGENES DEL GRUPO B
 
+Caracter1511 = Class8.iloc[:, :-1].iloc[1511]
+Caracter1609 = Class8.iloc[:, :-1].iloc[1609]
+Caracter1611 = Class8.iloc[:, :-1].iloc[1611]
+    
+#forma de la letra
+Caracter1511 = np.array(Caracter1511).reshape((28,28))
+Caracter1609 = np.array(Caracter1609).reshape((28,28))
+Caracter1611 = np.array(Caracter1611).reshape((28,28))
 
+fig, B = plt.subplots(1, 3, figsize=(9, 8))
 
+B[0].imshow(Caracter1511 , cmap='gray')
+B[1].imshow(Caracter1609 , cmap='gray')
+B[2].imshow(Caracter1611 , cmap='gray')
 
+B[0].set_title("CLASE8 - Caracter 1511")
+B[1].set_title("CLASE8 - Caracter 1609")
+B[2].set_title("CLASE8 - Caracter 1611")
 
+plt.show() 
 
+#%% GRAFICO DE LINEA GRUPO A 
+    
+plt.plot(range(784), Class8.iloc[:, :-1].iloc[1211], label = "1211")
+plt.plot(range(784), Class8.iloc[:, :-1].iloc[1311], label = "1311")
+plt.plot(range(784), Class8.iloc[:, :-1].iloc[1411], label = "1411")
+plt.title("CLASE 8 - Caracter GRUPO A - valores por celda")
+plt.xlabel("celdas de pixeles")
+plt.ylabel("valores")
+plt.legend(title = "Caracteres")
+plt.show()
 
+#%% GRAFICO DE LINEA GRUPO B 
+    
+plt.plot(range(784), Class8.iloc[:, :-1].iloc[1511], label = "1511")
+plt.plot(range(784), Class8.iloc[:, :-1].iloc[1609], label = "1609")
+plt.plot(range(784), Class8.iloc[:, :-1].iloc[1611], label = "1611")
+plt.title("CLASE 8 - Caracteres GRUPO B - valores por celda")
+plt.xlabel("celdas de pixeles")
+plt.ylabel("valores")
+plt.legend(title = "Caracter")
+plt.show()
 
+#%%   Histograma del grupo A
+
+Valores12 = Class8.iloc[:, :-1].iloc[1211].tolist()
+Valores13 = Class8.iloc[:, :-1].iloc[1311].tolist()
+Valores14 = Class8.iloc[:, :-1].iloc[1411].tolist()
+
+Valores12 = np.array(Valores12)
+Valores13 = np.array(Valores13)
+Valores14 = np.array(Valores14)
+    
+Valores12 = Valores12[Valores12 > 0]
+Valores13 = Valores13[Valores13 > 0]
+Valores14 = Valores14[Valores14 > 0]
+    
+plt.figure()
+plt.hist(Valores14, bins=20,edgecolor="black", alpha = 0.75, label="Carácter 1411")
+plt.hist(Valores13, bins=20,edgecolor="black", alpha = 0.75, label="Carácter 1311")
+plt.hist(Valores12, bins=20,edgecolor="black", alpha = 0.75, label="Carácter 1211")
+plt.title(" Histograma CLASE 8 - Caracteres 1211, 1311 y 1411")
+plt.xlabel("Valor de píxel")
+plt.ylabel("Frecuencia de ese valor de pixel")
+plt.legend(title="Caracter")
+plt.grid(alpha=0.15)
+plt.show()
+
+#%%   Histograma del grupo B
+
+Valores15 = Class8.iloc[:, :-1].iloc[1511].tolist()
+Valores160 = Class8.iloc[:, :-1].iloc[1609].tolist()
+Valores161 = Class8.iloc[:, :-1].iloc[1611].tolist()
+
+Valores15 = np.array(Valores15)
+Valores160 = np.array(Valores160)
+Valores161 = np.array(Valores161)
+    
+Valores15 = Valores15[Valores15 > 0]
+Valores160 = Valores160[Valores160 > 0]
+Valores161 = Valores161[Valores161 > 0]
+    
+plt.figure()
+plt.hist(Valores161, bins=20,edgecolor="black", alpha = 0.75, label="Carácter 1611")
+plt.hist(Valores15, bins=20,edgecolor="black", alpha = 0.75, label="Carácter 1511")
+plt.hist(Valores160, bins=20,edgecolor="black", alpha = 0.75, label="Carácter 1609")
+plt.title(" Histograma CLASE 8 - Caracteres 1511, 1609 y 1611 ")
+plt.xlabel("Valor de píxel")
+plt.ylabel("Frecuencia de ese valor de pixel")
+plt.legend(title="Caracteres")
+plt.grid(alpha=0.15)
+plt.show()
 
 #%% Consigna 2
 
 #%% 2.a)
 
 df2 = df_kuzu[(df_kuzu['label'] == 5) | (df_kuzu['label'] == 4)]
+#%%
+# Hacemos consulta para saber cuantas letras de Clase 4 hay
+CONSULTA_CLASE4 = """
+    SELECT COUNT(Label) AS "Cantidad Clase 4"
+    FROM df2
+    WHERE Label == 4
+    GROUP BY Label
+"""
+
+consulta_clase4 = db.query(CONSULTA_CLASE4).df()
+
+# Como consulta_clase4 arrojo un valor de 7000 y df2 tiene 14000 columnas, 
+#entonces sabemos que hay 7000 filas en df2 para cada clase 
 
 #%% 2.b) 
 
