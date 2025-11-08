@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn import tree
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
@@ -711,7 +712,7 @@ x_dev, x_eval, y_dev, y_eval = train_test_split(X, Y, test_size=0.2, random_stat
 # Notese que usamos StratifiedKFold para que nos mantenga la estratificacion 
 #pero ahora para los casos de Validación Cruzada
 nsplits = 5
-skf = StratifiedKFold(n_splits=nsplits)
+skf = StratifiedKFold(n_splits = nsplits, shuffle = True, random_state = 12)
 
 # Probamos un modelo de arbol para cada profundidad de profundidades
 profundidades = [1,2,3,5,8,10]
@@ -730,136 +731,58 @@ for i, (train_index, test_index) in enumerate(skf.split(x_dev, y_dev)):
         prediccion = arbol_3b.predict(skf_x_test)
         exactitud = accuracy_score(skf_y_test,prediccion)
         resultados_3b[i,j] = exactitud
-
-# Vemos que la exactitud se mantiene en un número similar a lo largo de los 
-#folds
-
-#%% 3.c)
-
-
-
-#%% 2.c)  MAL HECHO
-
-# Elegimos probar en algunas series de columnas particulares en las cuales 
-#vimos diferencias en el pixel promedio
-columnas = [
-    [80, 81, 82],
-    [110, 111, 112],
-    [200, 201, 202],
-    [323, 324, 325],
-    [425, 426, 427],
-    [450, 451, 452],
-    [500, 501, 502],
-    [550, 551, 552],
-    [600, 601, 602],
-    [640, 641, 642]
-]
-
-# Hacemos Validación cruzada para analizar tambien la estabilidad de haber
-#elegido esos atributos (celdas de pixel) en particular
-# Notese que usamos StratifiedKFold para que nos mantenga la estratificacion 
-#pero ahora para los casos de Validación Cruzada
-nsplits = 5
-skf = StratifiedKFold(n_splits=nsplits)
-
-# Creamos una matriz de resultados en los cuales su cantidad de columnas j serán
-#la prueba hecha en un fold con cada serie de 3 columnas, mientras que las filas i serán
-#los 5 folds que elegimos
-resultados = np.zeros((nsplits, len(columnas)))
-
-
-
-for i, (train_index, test_index) in enumerate(skf.split(x_train, y_train)):
-    kf_x_train, kf_x_test = x_train.iloc[train_index], x_train.iloc[test_index]
-    kf_y_train, kf_y_test = y_train.iloc[train_index], y_train.iloc[test_index]
-    for j in range(len(columnas)):
-        columnas_elegidas = columnas[j]
-        x_train_columnas = kf_x_train.iloc[:, columnas_elegidas]
-        x_test_columnas  = kf_x_test.iloc[:, columnas_elegidas]
         
-        clasificador = KNeighborsClassifier(n_neighbors=3)
-        clasificador.fit(x_train_columnas, kf_y_train)
-        prediccion = clasificador.predict(x_test_columnas)
-        accuracy = accuracy_score(kf_y_test, prediccion)
-        resultados[i, j] = accuracy
+# Vemos que la exactitud se mantiene en un número similar a lo largo de los 
+#folds por cada valor de profundidad del arbol
 
-# La matriz resultados que nos queda es el valor de la metrica accuracy en el 
-#fold i (0 =< i < 5), en la prueba (cuales columnas) j (0 <= j < 10)
-
-# Calculamos su promedio y elegimos la serie de columnas con mejor promedio.
-resultados_promedio = resultados.mean(axis = 0)
-
-# Nos queda la serie de columnas j = 3 ([323,324,325]) es la que que tuvo mas
-#estabilidad en su medida de accuracy. Por lo tanto hacemos calculamos x_test 
-
-# Elegimos dentro de nuestros datos de train y test la serie de columnas deseada
-x_train_elegido = x_train.iloc[:, columnas[3]]
-x_test_elegido = x_test.iloc[:, columnas[3]]
-
-# Entrenamos el modelo con los x_train_elegido y luego evaluamos con el 
-#x_test_elegido, para ver su accuracy
-clasificador_test = KNeighborsClassifier(n_neighbors = 3)
-clasificador_test.fit(x_train_elegido, y_train)
-y_pred_test = clasificador_test.predict(x_test_elegido)
-accuracy_real = accuracy_score(y_test, y_pred_test)
-print(str(accuracy_real))
-# Notese que el accuracy_real nos dio un numero muy parecido al promedio de los
-#folds hechos con la serie de columnas j = 3.
-
+# Calculamos el promedio de los folds por profundidad del arbol
+exactitud_promedio_3b = resultados_3b.mean(axis = 0)
 
 #%% 3.c)
 
+# En este inciso elegimos hacer las pruebas pedidas pero solo para árboles de
+#profundidad 10, ya que es el valor de profundidad que arrojo mayor valor de 
+#exactitud.
 
+# Creamos nuestro Grid de parametros para el Random Search
+parametros_grid = {
+    'min_samples_split': [2,5,10,15,20,30],
+    'min_samples_leaf': [2,3,5,8,10],
+    'max_features': [None, 'sqrt', 'log2']
+    }
 
+# Creamos el Árbol de Búsqueda
+clasificador_3c = tree.DecisionTreeClassifier(max_depth = 10, criterion = 'entropy')
 
-#%%
+# Ejecutamos el Random Search. En nuestro caso va a intentar 60 combinaciones 
+#de valores de los hiperparámetros elegidos en el Grid
+random_search = RandomizedSearchCV(
+    estimator = clasificador_3c,
+    param_distributions = parametros_grid,
+    n_iter = 60,
+    cv = 5, #Automaticamente usa StratifiedKFold
+    scoring = 'accuracy',
+    random_state = 12
+    )
 
+# Entrenamos el random_search con el conjunto de desarrollo
+random_search.fit(x_dev, y_dev)
 
-
-
-
-
-
-
-
-
-
-
-
-#%%
-arbol1 = tree.DecisionTreeClassifier(criterion = 'entropy', max_depth=10)
-arbol1.fit(x_dev,y_dev)
-prediccion1 = arbol_3b.predict(x_eval)
-exactitud1 = accuracy_score(y_eval,prediccion1)
-print(str(exactitud1))
-
-arbol2 = tree.DecisionTreeClassifier(criterion = 'entropy', max_depth=10)
-arbol2.fit(x_dev,y_dev)
-prediccion2 = arbol_3b.predict(x_dev)
-exactitud2 = accuracy_score(y_dev,prediccion2)
-print(str(exactitud2))
-#%%
-arbol = tree.DecisionTreeClassifier(criterion='entropy', max_depth=10)
-
-# Entrenamiento
-arbol.fit(x_dev, y_dev)
-
-# Exactitud en VALIDACIÓN
-pred_eval = arbol.predict(x_eval)
-acc_eval = accuracy_score(y_eval, pred_eval)
-print("Exactitud en validación:", acc_eval)
-
-# Exactitud en ENTRENAMIENTO
-pred_train = arbol.predict(x_dev)
-acc_train = accuracy_score(y_dev, pred_train)
-print("Exactitud en entrenamiento:", acc_train)
-                           #%%
+# Guardamos en una variable los mejores hiperparámetros probados, y la exactitud
+#que arrojó esa combinación de hiperparámetros para el Árbol de profundidad 10
+mejores_hiperparametros = random_search.best_params_
+exactitud_3c = random_search.best_score_
 
 #%%
+
+
+
+
+
+
+#%% COMO HACER UN ARBOL
 
 print(arbol_3b.classes_)
-
-#%%
 
 fig, ax = plt.subplots(figsize = (40,15))
 
@@ -871,53 +794,6 @@ ax = tree.plot_tree(
     fontsize = 20,
     rounded = True
     )
-
-
-
-
-
-
-
-
-
-
-
-
-#%%
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#%% 2.d)
-
-
-
 
 
 

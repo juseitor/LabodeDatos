@@ -718,7 +718,7 @@ x_dev, x_eval, y_dev, y_eval = train_test_split(X, Y, test_size=0.2, random_stat
 # Notese que usamos StratifiedKFold para que nos mantenga la estratificacion 
 #pero ahora para los casos de Validación Cruzada
 nsplits = 5
-skf = StratifiedKFold(n_splits=nsplits)
+skf = StratifiedKFold(n_splits = nsplits, shuffle = True, random_state = 12)
 
 # Probamos un modelo de arbol para cada profundidad de profundidades
 profundidades = [1,2,3,5,8,10]
@@ -739,42 +739,42 @@ for i, (train_index, test_index) in enumerate(skf.split(x_dev, y_dev)):
         resultados_3b[i,j] = exactitud
 
 # Vemos que la exactitud se mantiene en un número similar a lo largo de los 
-#folds
+#folds por cada valor de profundidad del arbol
 
-#%%
+# Calculamos el promedio de los folds por profundidad del arbol
+exactitud_promedio_3b = resultados_3b.mean(axis = 0)
 
+#%% 3.c)
 
-arbol_3b = tree.DecisionTreeClassifier(criterion = 'entropy', max_depth=1)
-arbol_3b.fit(x_dev,y_dev)
-prediccion = arbol_3b.predict(x_eval)
-exactitud = accuracy_score(y_eval,prediccion)
-                           #%%
-print(str(exactitud))
+# En este inciso elegimos hacer las pruebas pedidas pero solo para árboles de
+#profundidad 10, ya que es el valor de profundidad que arrojo mayor valor de 
+#exactitud.
 
-#%%
+# Creamos nuestro Grid de parametros para el Random Search
+parametros_grid = {
+    'min_samples_split': [2,5,10,15,20,30],
+    'min_samples_leaf': [2,3,5,8,10],
+    'max_features': [None, 'sqrt', 'log2']
+    }
 
-print(arbol_3b.classes_)
+# Creamos el Árbol de Búsqueda
+clasificador_3c = tree.DecisionTreeClassifier(max_depth = 10, criterion = 'entropy')
 
-#%%
-
-fig, ax = plt.subplots(figsize = (40,15))
-
-ax = tree.plot_tree(
-    arbol_3b,
-    filled = True,
-    feature_names = X.columns,
-    class_names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-    fontsize = 20,
-    rounded = True
+# Ejecutamos el Random Search. En nuestro caso va a intentar 60 combinaciones 
+#de valores de los hiperparámetros elegidos en el Grid
+random_search = RandomizedSearchCV(
+    estimator = clasificador_3c,
+    param_distributions = parametros_grid,
+    n_iter = 60,
+    cv = 5, #Automaticamente usa StratifiedKFold
+    scoring = 'accuracy',
+    random_state = 12
     )
 
+# Entrenamos el random_search con el conjunto de desarrollo
+random_search.fit(x_dev, y_dev)
 
-
-
-
-
-
-
-
-
-
+# Guardamos en una variable los mejores hiperparámetros probados, y la exactitud
+#que arrojó esa combinación de hiperparámetros para el Árbol de profundidad 10
+mejores_hiperparametros = random_search.best_params_
+exactitud_3c = random_search.best_score_
