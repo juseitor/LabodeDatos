@@ -597,9 +597,9 @@ for i in range(len(columnas2)):
     exactitud = accuracy_score(y_test, prediccion)
     resultados_2c_2[i] = exactitud
 
-# Notese que la mejor precision del anterior ejercicio que la serie de columnas
+# Notese que la mejor exactitud del anterior ejercicio que la serie de columnas
 #7, que toma los valores [550, 551, 552], ahora que le agregamos dos atributos
-#continuos mas la precision ([550,551,552,553,554]) nos quedo considerablemente
+#continuos mas ([550,551,552,553,554]) la exactitud nos quedo considerablemente
 #menor. Paso de 0.733 a 0.497. Esto sugiere que esta cantidad de atributos 
 #elegida es poca para definir el modelo knn, o que son pocos la cantidad de 
 #vecinos elegida.
@@ -633,7 +633,8 @@ for i in range(len(columnas3)):
     exactitud = accuracy_score(y_test, prediccion)
     resultados_2c_3[i] = exactitud
 
-# Notese que por resultados 3 mejoro mucho la exactitud.
+# Notese que por resultados_2c_3 mejoro mucho la exactitud salvo en un caso,
+#el cual es el de columnas3[0]
 #%%
 # Por último vamos a repetir nuestro experimento pero continuando con las 
 #series de columnas anteriores pero para 15 celdas de pixeles.
@@ -651,7 +652,7 @@ columnas4 = [
     [625,626,627,628,629,630,631,632,633,634,635,636,637,638,639]
 ]
 
-resultados_2c_4 = np.zeros(len(columnas2))
+resultados_2c_4 = np.zeros(len(columnas4))
 
 for i in range(len(columnas4)):
     columnas_elegidas = columnas4[i]
@@ -711,23 +712,34 @@ x_dev, x_eval, y_dev, y_eval = train_test_split(X, Y, test_size=0.2, random_stat
 
 #%% 3.b)
 
+# Al no poder utilizar el conjunto de Held Out que es pedido en el inciso a)
+#vamos a utilizar validación cruzada para testear en nuestro casos.
+
+# Notese que usamos StratifiedKFold para que nos mantenga la estratificacion 
+#pero ahora para los casos de Validación Cruzada
+nsplits = 5
+skf = StratifiedKFold(n_splits=nsplits)
+
+# Probamos un modelo de arbol para cada profundidad de profundidades
 profundidades = [1,2,3,5,8,10]
 
-resultados_3b = np.zeros(len(profundidades))
+# Creamos una matriz de resultados en los cuales su cantidad de columnas j serán
+#las profundidades del modelo, mientras que las filas i serán los 5 folds que 
+#elegimos
+resultados_3b = np.zeros((nsplits,len(profundidades)))
 
-for i in range(len(profundidades)):
-    arbol_3b = tree.DecisionTreeClassifier(criterion = 'entropy', max_depth=profundidades[i])
-    arbol_3b.fit(x_dev,y_dev)
-    prediccion = arbol_3b.predict(x_eval)
-    exactitud = accuracy_score(y_eval,prediccion)
-    resultados_3b[i] = exactitud
+for i, (train_index, test_index) in enumerate(skf.split(x_dev, y_dev)):
+    skf_x_train, skf_x_test = x_dev.iloc[train_index], x_dev.iloc[test_index]
+    skf_y_train, skf_y_test = y_dev.iloc[train_index], y_dev.iloc[test_index]
+    for j in range(len(profundidades)):
+        arbol_3b = tree.DecisionTreeClassifier(criterion = 'entropy', max_depth=profundidades[j])
+        arbol_3b.fit(skf_x_train, skf_y_train)
+        prediccion = arbol_3b.predict(skf_x_test)
+        exactitud = accuracy_score(skf_y_test,prediccion)
+        resultados_3b[i,j] = exactitud
 
-#clasificador = KNeighborsClassifier(n_neighbors=3)
-#clasificador.fit(x_train_columnas, y_train)
-#prediccion = clasificador.predict(x_test_columnas)
-#exactitud = accuracy_score(y_test, prediccion)
-#resultados_2c_4[i] = exactitud
-    
+# Vemos que la exactitud se mantiene en un número similar a lo largo de los 
+#folds
 
 #%%
 
