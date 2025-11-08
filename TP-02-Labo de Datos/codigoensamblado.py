@@ -697,3 +697,72 @@ for j in range(len(columnas4)):
 #cuando pasamos el modelo KNN de 25 a 50 vecinos (filas 6 a 7), baja 
 #ligeramente el valor de exactitud.
 #%%
+
+#%% 3.a)
+
+# Separamos en datos de entrenamiento (80% de los mismos), y de test (el 
+#restante 20%)
+X = df_kuzu.drop(columns=['label'])
+Y = df_kuzu['label']
+#%%
+# Notese que nuevamente estratificamos los casos de Desarrollo y Validacion
+#para que mantengan la proporción de datos por clases
+x_dev, x_eval, y_dev, y_eval = train_test_split(X, Y, test_size=0.2, random_state=12, stratify = Y)
+
+#%% 3.b)
+
+profundidades = [1,2,3,5,8,10]
+
+resultados_3b = np.zeros(len(profundidades))
+
+for i in range(len(profundidades)):
+    arbol_3b = tree.DecisionTreeClassifier(criterion = 'entropy', max_depth=profundidades[i])
+    arbol_3b.fit(x_dev,y_dev)
+    prediccion = arbol_3b.predict(x_eval)
+    exactitud = accuracy_score(y_eval,prediccion)
+    resultados_3b[i] = exactitud
+
+#clasificador = KNeighborsClassifier(n_neighbors=3)
+#clasificador.fit(x_train_columnas, y_train)
+#prediccion = clasificador.predict(x_test_columnas)
+#exactitud = accuracy_score(y_test, prediccion)
+#resultados_2c_4[i] = exactitud
+    
+
+#%%
+
+
+arbol_3b = tree.DecisionTreeClassifier(criterion = 'entropy', max_depth=1)
+arbol_3b.fit(x_dev,y_dev)
+prediccion = arbol_3b.predict(x_eval)
+exactitud = accuracy_score(y_eval,prediccion)
+                           #%%
+print(str(exactitud))
+
+#%%
+
+print(arbol_3b.classes_)
+
+#%%
+
+fig, ax = plt.subplots(figsize = (40,15))
+
+ax = tree.plot_tree(
+    arbol_3b,
+    filled = True,
+    feature_names = X.columns,
+    class_names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+    fontsize = 20,
+    rounded = True
+    )
+
+
+
+
+
+
+
+
+
+
+
