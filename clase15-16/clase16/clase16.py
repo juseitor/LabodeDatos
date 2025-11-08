@@ -92,7 +92,7 @@ y = df_titanic['Survived'].values
 #%% Creamos el arbol
 
 arbol_tit = tree.DecisionTreeClassifier(criterion = 'entropy', max_depth=3)
-#Tenemos distintos argumentos:
+#Tenemos distintos hiperargumentos:
 #max_leaf_nodes: Permite limitar directamente la cantidad de hojas y regula el arbol
 #min_samples_split: Cantidad mínima de muestras necesarias para intentar dividir un nodo. Default = 2
 # min_samples_leaf: Número mínimo de muestras por hoja. Ayuda a controlar sobreajuste aún más que el anterior.

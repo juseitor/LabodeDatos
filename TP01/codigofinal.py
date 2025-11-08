@@ -313,7 +313,7 @@ EP_limpio = db.query(acentos_provincia_EP).df()
 #%%
 
 #abro el excel
-poblacion = pd.read_excel(str_dir+"/padron_poblacion.xlsX")
+poblacion = pd.read_excel(str_dir+"/TablasOriginales/padron_poblacion.xlsX")
 
 #%%
 
