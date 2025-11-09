@@ -7,7 +7,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn import tree
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix
 from sklearn.model_selection import train_test_split
  
 #%% Cargamos los dataset
@@ -769,9 +769,24 @@ random_search = RandomizedSearchCV(
 random_search.fit(x_dev, y_dev)
 
 # Guardamos en una variable los mejores hiperparámetros probados, y la exactitud
-#que arrojó esa combinación de hiperparámetros para el Árbol de profundidad 10
+#promedio que arrojó esa combinación de hiperparámetros para sus 5 folds para 
+#el Árbol de profundidad 10
 mejores_hiperparametros = random_search.best_params_
 exactitud_3c = random_search.best_score_
+
+#%% 3.d)
+
+# Entrenamos el modelo con los mejores hiperparametros del inciso 3.d) y 
+#evaluamos sobre el conjunto Held Out
+clasificador_3d = tree.DecisionTreeClassifier(criterion= 'entropy', max_depth= 10, min_samples_split= 5, min_samples_leaf= 3, max_features = None)
+clasificador_3d.fit(x_dev, y_dev)
+prediccion_3d = clasificador_3d.predict(x_eval)
+exactitud_3d = accuracy_score(y_eval,prediccion_3d)
+#%%
+# Creamos la matriz de confusion y valores de precision y recall
+matriz_3d = confusion_matrix(y_eval, prediccion_3d)
+precision_3d = precision_score(y_eval, prediccion_3d, average='macro')
+recall_3d = recall_score(y_eval, prediccion_3d, average='macro')
 
 #%%
 

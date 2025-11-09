@@ -1,3 +1,14 @@
+#%%
+
+# Nombre del grupo: 
+    # Labo de Datos
+
+# Participantes:
+    # Vales, Benjamin Francisco
+    # Lopez, Gabriel
+    # Pariona Escalante, Diego Armando
+ 
+#%% Librerías importadas
 import pandas as pd
 import numpy as np
 import duckdb as db
@@ -5,16 +16,17 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import accuracy_score
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix
 from sklearn.model_selection import train_test_split
+from sklearn import tree
 
-#%%
-#%%Código para ubicar las DB
+#%% Código para ubicar las DB
 
 Direccion_actual = pl.Path(__file__).parent.resolve()
 Ubi = str(Direccion_actual) 
 
-#%% Cargamos los dataset
+#%% Carga de los dataset
 df_kuzu = pd.read_csv(Ubi+"/kuzushiji_full.csv")
 df_minst = pd.read_csv(Ubi+"/kmnist_classmap_char.csv")
 
@@ -22,7 +34,8 @@ df_minst = pd.read_csv(Ubi+"/kmnist_classmap_char.csv")
 #%%                            EJERCICIO 1 
 #%%  
 # TODO ESTO PARA CREAR EL DATAFRAME forma_por_clase
-# ESTAS VARIABLES ESTAN EN CON LA PRIMER LETRA EN MAYUCULA PARA QUE PUEDAD FILTRAR EN EL SPYDER
+# ESTAS VARIABLES ESTAN EN CON LA PRIMER LETRA EN MAYUCULA PARA QUE PUEDAD 
+#FILTRAR EN EL SPYDER
 
 
 #%% 
@@ -263,7 +276,7 @@ for J in range(len(kuzu)):
     plt.title("forma promedio clase "+str(J))
     plt.show()
 
-#%%    B)
+#%% 1.B)
 #%%   GRAFICOS QUE USAMOS PARA DESCUBRIR LA SIMILITUD ENTRE LA CLASE 1 y 2
 
 #%%  BOXPLOT SOBRE LAS CLASES 1 Y 2
@@ -376,7 +389,7 @@ plt.legend(title = "CLASES")
 plt.grid(alpha=0.15)
 plt.show()
     
-#%%  C) 
+#%%  1.C) 
 #%%
 # TOMAMOS LA CLASE 8 PARA EL ANALISIS DE ESTE PUNTO
 A = [1211,1311,1411]
@@ -502,26 +515,13 @@ plt.show()
 
 
 
-#%% Consigna 2
-
-#%% 2.a)
-
-df2 = df_kuzu[(df_kuzu['label'] == 5) | (df_kuzu['label'] == 4)]
+#%%                             EJERCICIO 2
+#%% 2.A)
 #%%
-# Hacemos consulta para saber cuantas letras de Clase 4 hay
-CONSULTA_CLASE4 = """
-    SELECT COUNT(Label) AS "Cantidad Clase 4"
-    FROM df2
-    WHERE Label == 4
-    GROUP BY Label
-"""
+df2 = df_kuzu[(df_kuzu['label'] == 5) | (df_kuzu['label'] == 4)]
 
-consulta_clase4 = db.query(CONSULTA_CLASE4).df()
-
-# Como consulta_clase4 arrojo un valor de 7000 y df2 tiene 14000 columnas, 
-#entonces sabemos que hay 7000 filas en df2 para cada clase 
-
-#%% 2.b) 
+#%% 2.B)
+#%%
 
 # Separamos en datos de entrenamiento (80% de los mismos), y de test (el 
 #restante 20%)
@@ -532,7 +532,8 @@ y = df2['label']
 #proporción de datos por clases
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=12, stratify = y)
 
-#%% 2.c) 
+#%% 2.C) 
+#%%
 
 # Elegimos probar en algunas series de columnas continuas particulares en las 
 #cuales vimos diferencias en el pixel promedio entre las dos clases
@@ -667,7 +668,8 @@ for i in range(len(columnas4)):
 # Notese que hubieron algunos valores de exactitud de resultados_2c_3 los 
 #cuales aumentaron con respecto a resultados_2c_3, pero otros disminuyeron.
 
-#%% 2.d)
+#%% 2.D)
+#%%
 
 # Primero vamos a utilizar la ultima lista columnas4 para probar modelos de 
 #claisficacion knn para distinta cantidad de vecinos
@@ -697,20 +699,24 @@ for j in range(len(columnas4)):
 #observar que para todas las columnas elegidas salvo un caso (columnas[7]), 
 #cuando pasamos el modelo KNN de 25 a 50 vecinos (filas 6 a 7), baja 
 #ligeramente el valor de exactitud.
+
+
+
+#%%                             EJERCICIO 3
+#%% 3.A)
 #%%
 
-#%% 3.a)
-
-# Separamos en datos de entrenamiento (80% de los mismos), y de test (el 
-#restante 20%)
+# Separamos en datos de desarrollo (80% de los mismos), y de validacion (el 
+#restante 20%) pero ahora para el dataset entero de kuzuhiji esta vez
 X = df_kuzu.drop(columns=['label'])
 Y = df_kuzu['label']
-#%%
+
 # Notese que nuevamente estratificamos los casos de Desarrollo y Validacion
 #para que mantengan la proporción de datos por clases
 x_dev, x_eval, y_dev, y_eval = train_test_split(X, Y, test_size=0.2, random_state=12, stratify = Y)
 
-#%% 3.b)
+#%% 3.B)
+#%%
 
 # Al no poder utilizar el conjunto de Held Out que es pedido en el inciso a)
 #vamos a utilizar validación cruzada para testear en nuestro casos.
@@ -737,14 +743,15 @@ for i, (train_index, test_index) in enumerate(skf.split(x_dev, y_dev)):
         prediccion = arbol_3b.predict(skf_x_test)
         exactitud = accuracy_score(skf_y_test,prediccion)
         resultados_3b[i,j] = exactitud
-
+        
 # Vemos que la exactitud se mantiene en un número similar a lo largo de los 
 #folds por cada valor de profundidad del arbol
 
 # Calculamos el promedio de los folds por profundidad del arbol
 exactitud_promedio_3b = resultados_3b.mean(axis = 0)
 
-#%% 3.c)
+#%% 3.C)
+#%%
 
 # En este inciso elegimos hacer las pruebas pedidas pero solo para árboles de
 #profundidad 10, ya que es el valor de profundidad que arrojo mayor valor de 
@@ -775,6 +782,24 @@ random_search = RandomizedSearchCV(
 random_search.fit(x_dev, y_dev)
 
 # Guardamos en una variable los mejores hiperparámetros probados, y la exactitud
-#que arrojó esa combinación de hiperparámetros para el Árbol de profundidad 10
+#promedio que arrojó esa combinación de hiperparámetros para sus 5 folds para 
+#el Árbol de profundidad 10
 mejores_hiperparametros = random_search.best_params_
 exactitud_3c = random_search.best_score_
+
+#%% 3.D)
+#%%
+
+# Entrenamos el modelo con los mejores hiperparametros del inciso 3.d) y 
+#evaluamos sobre el conjunto Held Out
+clasificador_3d = tree.DecisionTreeClassifier(criterion= 'entropy', max_depth= 10, min_samples_split= 5, min_samples_leaf= 3, max_features = None)
+clasificador_3d.fit(x_dev, y_dev)
+prediccion_3d = clasificador_3d.predict(x_eval)
+exactitud_3d = accuracy_score(y_eval,prediccion_3d)
+#%%
+# Creamos la matriz de confusion y valores de precision y recall
+matriz_3d = confusion_matrix(y_eval, prediccion_3d)
+precision_3d = precision_score(y_eval, prediccion_3d, average='macro')
+recall_3d = recall_score(y_eval, prediccion_3d, average='macro')
+
+#%%
