@@ -33,9 +33,15 @@ EE_df = pd.read_excel(str_dir+'/TablasOriginales/2022_padron_oficial_establecimi
 
 EP_df = pd.read_csv(str_dir+'/TablasOriginales/Datos_por_departamento_actividad_y_sexo.csv')
 
+#%% abro el excel
+poblacion = pd.read_excel(str_dir+"/TablasOriginales/padron_poblacion.xlsX")
 
-#%%               GQM 
+
+
+
+#%%                                 GQM 
 #%% EP anio
+#%%
 anio = """
         SELECT anio,COUNT(*) AS cant
         FROM EP_df
@@ -62,10 +68,11 @@ solucion_anio = """
                 FROM EP_df
                 WHERE anio = 2022
                 """
-solucion_anio = db.query(solucion_anio).df()
+EP_df = db.query(solucion_anio).df()
 
 
 #%% EE Telefono
+#%%
 
 tel =  """
         SELECT Teléfono , COUNT(*) AS cant
@@ -85,7 +92,7 @@ print(obtenido_telefono)
 
 
 #%%  EE Domiclio
-
+#%%
 
 dom =  """
         SELECT Domicilio, COUNT(*) AS cant
@@ -104,7 +111,7 @@ print(obtenido_domicilio)
 
 
 #%% EE Mail
-
+#%%
 
 correo =  """
         SELECT Mail , COUNT(*) AS cant
@@ -122,24 +129,181 @@ obtenido_mail = mail / cant_registros
 print(obtenido_mail) 
 
 
+#%% Provincias entre EE y EP 
 #%%
-#%% Limpieza establecimientos_educativos
+
+# Primero vemos en que difieren los valores de Jurisdicción de EE_df con 
+#respecto a provincia de EP_df. Luego al revés.
+
+Consulta1_dif_jurisdicción_provincia = """
+    SELECT DISTINCT ee.Jurisdicción, ep.provincia
+    FROM EE_df AS ee
+    LEFT OUTER JOIN EP_df AS ep
+    ON ep.provincia = ee.Jurisdicción
+    GROUP BY ee.Jurisdicción, ep.provincia
+"""
+
+consulta1 = db.query(Consulta1_dif_jurisdicción_provincia).df()
+
+Consulta2_dif_jurisdicción_provincia = """
+    SELECT DISTINCT ee.Jurisdicción, ep.provincia
+    FROM EE_df AS ee
+    RIGHT OUTER JOIN EP_df AS ep
+    ON ep.provincia = ee.Jurisdicción
+    GROUP BY ee.Jurisdicción, ep.provincia
+"""
+
+consulta2 = db.query(Consulta2_dif_jurisdicción_provincia).df()
+
+# Observamos que los nombres de las provincias difieren por tildes y mayúsculas,
+#y en el caso de CABA por Ciudad Autónoma de Buenos Aires
+
+#%%
+
+Metrica1 =  """
+        SELECT COUNT(*) AS Cantidad_Nulls
+        FROM consulta2
+        WHERE Jurisdicción IS NULL
+        GROUP BY Jurisdicción
+        """
+metrica1 = db.query(Metrica1).df()
+
+
+m1 = metrica1.loc[0,"Cantidad_Nulls"] / 24
+print(m1)
+
+#%%
+
+#Entonces cambiamos las letras de las provincias a mayúsculas
+
+Mayuscula_provincia_EP = """
+    SELECT DISTINCT anio, in_departamentos, 
+    departamento, 
+    provincia_id, 
+    UPPER(provincia) AS provincia, 
+    clae6, 
+    clae2, 
+    letra, 
+    genero, 
+    Empleo, 
+    Establecimientos, 
+    empresas_exportadoras
+    FROM EP_df
+"""
+
+EP_df = db.query(Mayuscula_provincia_EP).df()
+
+Mayuscula_provincia_EE = """
+    SELECT DISTINCT UPPER(Jurisdicción) AS Jurisdicción, Cueanexo, Nombre, Sector, Ámbito, Domicilio,
+           "C. P.", "Código de área", Teléfono, "Código de localidad",
+           Localidad, Departamento, Mail, Común, Especial, Adultos,
+           Artística, Hospitalaria, Intercultural, Encierro,
+           "Nivel inicial - Jardín maternal", "Nivel inicial - Jardín de infantes",
+           Primario, Secundario, "Secundario - INET", SNU, "SNU - INET",
+           "Secundario.1", "SNU.1", Talleres,
+           "Nivel inicial - Educación temprana",
+           "Nivel inicial - Jardín de infantes.1", "Primario.1", "Secundario.2",
+           "Integración a la modalidad común/ adultos", "Primario.2",
+           "Secundario.3", Alfabetización, "Formación Profesional",
+           "Formación Profesional - INET", Inicial, "Primario.3", "Secundario.4",
+           "Unnamed: 43"
+    FROM EE_df
+"""
+
+EE_df = db.query(Mayuscula_provincia_EE).df()
+
+#%%
+
+# Cambiamos el nombre de Ciudad de Buenos Aires a CABA en EE
+
+Caba_Jurisdicciones = """
+    SELECT DISTINCT REPLACE(Jurisdicción, 'CIUDAD DE BUENOS AIRES', 'CABA') AS Jurisdicción, Cueanexo, Nombre, Sector, Ámbito, Domicilio,
+           "C. P.", "Código de área", Teléfono, "Código de localidad",
+           Localidad, Departamento, Mail, Común, Especial, Adultos,
+           Artística, Hospitalaria, Intercultural, Encierro,
+           "Nivel inicial - Jardín maternal", "Nivel inicial - Jardín de infantes",
+           Primario, Secundario, "Secundario - INET", SNU, "SNU - INET",
+           "Secundario.1", "SNU.1", Talleres,
+           "Nivel inicial - Educación temprana",
+           "Nivel inicial - Jardín de infantes.1", "Primario.1", "Secundario.2",
+           "Integración a la modalidad común/ adultos", "Primario.2",
+           "Secundario.3", Alfabetización, "Formación Profesional",
+           "Formación Profesional - INET", Inicial, "Primario.3", "Secundario.4",
+           "Unnamed: 43"
+           FROM EE_df
+"""
+
+EE_df = db.query(Caba_Jurisdicciones).df()
+
+#%%
+
+# Limpio lo que son acentos de las Jurisdicciones (provincias) EE
+Acentos_jurisdiccion_EE =  """
+            SELECT 
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(Jurisdicción, 'Á', 'A'),'É', 'E'),'Í', 'I'),
+            'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS Jurisdicción, Cueanexo, Nombre, Sector, Ámbito, Domicilio,
+                   "C. P.", "Código de área", Teléfono, "Código de localidad",
+                   Localidad, Departamento, Mail, Común, Especial, Adultos,
+                   Artística, Hospitalaria, Intercultural, Encierro,
+                   "Nivel inicial - Jardín maternal", "Nivel inicial - Jardín de infantes",
+                   Primario, Secundario, "Secundario - INET", SNU, "SNU - INET",
+                   "Secundario.1", "SNU.1", Talleres,
+                   "Nivel inicial - Educación temprana",
+                   "Nivel inicial - Jardín de infantes.1", "Primario.1", "Secundario.2",
+                   "Integración a la modalidad común/ adultos", "Primario.2",
+                   "Secundario.3", Alfabetización, "Formación Profesional",
+                   "Formación Profesional - INET", Inicial, "Primario.3", "Secundario.4",
+                   "Unnamed: 43"
+            FROM EE_df
+            """
+EE_df = db.query(Acentos_jurisdiccion_EE).df()
+
+#%%
+
+# Limpiamos lo que son acentos de provincia de EP
+Acentos_provincia_EP =  """
+            SELECT 
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(
+            REPLACE(provincia, 'Á', 'A'),'É', 'E'),'Í', 'I'),
+            'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS provincia, anio, in_departamentos, 
+            departamento, 
+            provincia_id, 
+            clae6, 
+            clae2, 
+            letra, 
+            genero, 
+            Empleo, 
+            Establecimientos, 
+            empresas_exportadoras
+            FROM EP_df
+            
+            """
+EP_df = db.query(Acentos_provincia_EP).df()
+
+#%%#%% Limpieza establecimientos_educativos
 
 #%% Limpieza columnas
 
 #Construyo un DF con las columnas que nos sirven
-EE_limpio = EE_df[['Jurisdicción','Departamento','Común', 'Nivel inicial - Jardín maternal', 
-                                   'Nivel inicial - Jardín de infantes',
-                                   'Primario', 'Secundario',
-                                   'Secundario - INET', 'SNU', 'SNU - INET']]
+EE_limpio = EE_df[['Cueanexo', 'Jurisdicción','Departamento','Común', 'Nivel inicial - Jardín de infantes',
+                                   'Primario', 'Secundario']]
 #Elimino columnas repetidas: https://stackoverflow.com/questions/14984119/python-pandas-remove-duplicate-columns
 EE_limpio = EE_limpio.loc[:,~EE_limpio.columns.duplicated()].copy()
-
-#%% Limpieza de filas que no pertenezcan a la modalidad común
+    
+#%% Remplazamos null
 
 EE_limpio['Común'].replace(' ', np.nan, inplace = True)
 
-#%%
+#%% Limpieza de filas que no pertenezcan a la modalidad común
 
 EE_limpio = EE_limpio.dropna(subset = ['Común'])
 
@@ -150,24 +314,19 @@ EE_limpio = EE_limpio.drop(['Común'], axis = 1)
 #%%
 #Renombro las columnas 'Nivel inicial - Jardín maternal',
 #'Nivel inicial - Jardín de infantes', 'Secundario - INET', 'SNU - INET'
-
-EE_limpio = EE_limpio.rename(columns = {'Nivel inicial - Jardín maternal': 'JardinM',
-                            'Nivel inicial - Jardín de infantes': 'JardinI',
-                            'Secundario - INET': 'SecundarioINET'
-                            , 'SNU - INET': 'SNUINET'})
-
+    
+EE_limpio = EE_limpio.rename(columns = {'Nivel inicial - Jardín de infantes': 'Jardin'})
+ 
 #%% Convierto los nombres de los departamentos a mayuscula 
 
 mayus = """
-        SELECT UPPER(Jurisdicción) as Provincia, UPPER(Departamento) AS Departamento, JardinM, 
-                                   JardinI,
-                                   Primario, Secundario,
-                                   SecundarioINET, SNU, SNUINET
+        SELECT Jurisdicción as Provincia, UPPER(Departamento) AS Departamento, Cueanexo, Jardin,
+                                   Primario, Secundario
         FROM EE_limpio
         """
 EE_limpio =  db.query(mayus).df()
 
-#%% Modificar los nombres de Departamento para que coincidan con AP
+#%% Modificar los nombres de Departamento para que coincidan con EP
 
 #limpio lo que son acentos
 acentos_departamento =  """
@@ -178,30 +337,13 @@ acentos_departamento =  """
             REPLACE(
             REPLACE(
             REPLACE(Departamento, 'Á', 'A'),'É', 'E'),'Í', 'I'),
-            'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS Departamento, JardinM, JardinI, Primario, Secundario, SecundarioINET, SNU, SNUINET
+            'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS Departamento, Cueanexo, Jardin, Primario, Secundario
             FROM EE_limpio
             
             """
 EE_limpio = db.query(acentos_departamento).df()
 
-#%% Modificar los nombres de Provincia para que coincidan con AP
-
-#limpio lo que son acentos
-acentos_provincia =  """
-            SELECT 
-            REPLACE(
-            REPLACE(
-            REPLACE(
-            REPLACE(
-            REPLACE(
-            REPLACE(Provincia, 'Á', 'A'),'É', 'E'),'Í', 'I'),
-            'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS Provincia, Departamento, JardinM, JardinI, Primario, Secundario, SecundarioINET, SNU, SNUINET
-            FROM EE_limpio
-            
-            """
-EE_limpio = db.query(acentos_provincia).df()
-
-#%%
+#%% EJECUTAR DOS VECES ESTE BLOQUE PORQUE PUEDEN HABER ERRORES QUE REQUIEREN DOS EJECUCIONES
 
 # Tomo como referencias los nombre de departamentos y provincias de E. Productivos y edito los de E.Educativos  ----> (lo que tengo, lo que quiero)      
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("1§ DE MAYO", "1° DE MAYO")
@@ -211,7 +353,7 @@ EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("CORONEL FELIPE VA
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("DOCTOR MANUEL BELGRANO", "DR. MANUEL BELGRANO")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("GENERAL JUAN F QUIROGA", "GENERAL JUAN FACUNDO QUIROGA")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("GENERAL JUAN MARTIN DE PUEYRREDON", "JUAN MARTIN DE PUEYRREDON")
-EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("GENE Jardin, Pirmaria, Secundaria, Poblacion TotalRAL OCAMPO",  "GENERAL ORTIZ DE OCAMPO")
+EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("GENERAL ORTÍZ DE OCAMPO",  "GENERAL ORTIZ DE OCAMPO")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("JUAN B ALBERDI", "JUAN BAUTISTA ALBERDI")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("JUAN F IBARRA", "JUAN FELIPE IBARRA"  )
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("MAYOR LUIS J FONTANA", "MAYOR LUIS J. FONTANA")
@@ -219,7 +361,13 @@ EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("O HIGGINS", "O'HI
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("GENERAL OCAMPO" , "GENERAL ORTÍZ DE OCAMPO")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("LIBERTADOR GRL SAN MARTIN" , "LIBERTADOR GENERAL SAN MARTIN")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("O HIGGINS", "O'HIGGINS")
-EE_limpio["Provincia"] = EE_limpio["Provincia"].replace("CIUDAD DE BUENOS AIRES", "CABA")
+
+
+
+
+
+
+
 
 
 
@@ -230,28 +378,25 @@ EE_limpio["Provincia"] = EE_limpio["Provincia"].replace("CIUDAD DE BUENOS AIRES"
 
 
 #%% Limpieza Establecimientos_Productivos
-
-#%% Filtro por año = 2022
-
-EP_limpio = EP_df[EP_df['anio'] == 2022]
-
 #%% Esto es para hacer lo de poblacion mas adelante... 
 
-EP_limpioo = EP_limpio[['departamento','provincia_id','provincia', 'clae6', 'genero', 
+EP_limpioo = EP_df[['departamento','provincia_id','provincia', 'clae6', 'genero', 
                        'Empleo', 'Establecimientos', 'empresas_exportadoras']]
 
-#%% Dejo sólo las columnas necesarias
+#%% Dejamos sólo las columnas necesarias
 
-EP_limpio = EP_limpio[['departamento', 'provincia', 'clae6', 'genero', 
+EP_limpio = EP_df[['departamento', 'in_departamentos', 'provincia', 'provincia_id', 'clae6', 'genero', 
                        'Empleo', 'Establecimientos', 'empresas_exportadoras']]
 
 
-#%% Asigno los nombres de los atributos como en el modelo Relacional, y hago mayusculas
-# a los valores de Provincia y Departamento como en EE
+#%% Asigno los nombres de los atributos como en el Modelo Relacional, 
+#y modificamos los valores de departamento para que esten en mayusculas
 
 consulta_EP = """
-        SELECT UPPER(provincia) AS Provincia, 
+        SELECT provincia AS Provincia, 
+        provincia_id,
         UPPER(departamento) AS Departamento,
+        in_departamentos,
         clae6 AS Clae6,
         genero as Sexo,
         Empleo AS Empleados,
@@ -264,42 +409,24 @@ EP_limpio = db.query(consulta_EP).df()
 
 #%% Modificamos los nombres de Departamento para que no tengan tildes
 
-#SIGO VIENDO TILDES SI COPIO, PEGO, Y ADAPTO ESTA MISMA FUNCION DE EE
-
 #limpio lo que son acentos
 acentos_departamento_EP =  """
-            SELECT Provincia,
+            SELECT Provincia, provincia_id,
             REPLACE(
             REPLACE(
             REPLACE(
             REPLACE(
             REPLACE(
             REPLACE(Departamento, 'Á', 'A'),'É', 'E'),'Í', 'I'),
-            'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS Departamento, Clae6, Sexo, Empleados, Establecimientos, Empresas_exportadoras
+            'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS Departamento, in_departamentos, Clae6, Sexo, Empleados, Establecimientos, Empresas_exportadoras
             FROM EP_limpio
             
             """
 EP_limpio = db.query(acentos_departamento_EP).df()
 
-#%% Modificar los nombres de Provincia para que coincidan con AP
 
-#SIN EMBARGO SI FUNCIONA ACA
 
-#limpio lo que son acentos
-acentos_provincia_EP =  """
-            SELECT 
-            REPLACE(
-            REPLACE(
-            REPLACE(
-            REPLACE(
-            REPLACE(
-            REPLACE(Provincia, 'Á', 'A'),'É', 'E'),'Í', 'I'),
-            'Ó', 'O'),'Ú', 'U'),'Ü', 'U') AS Provincia, Departamento,
-            Clae6, Sexo, Empleados, Establecimientos, Empresas_exportadoras
-            FROM EP_limpio
-            
-            """
-EP_limpio = db.query(acentos_provincia_EP).df()
+
 
 
 
@@ -310,10 +437,6 @@ EP_limpio = db.query(acentos_provincia_EP).df()
 
 
 #%% Limpieza pardón_población 
-#%%
-
-#abro el excel
-poblacion = pd.read_excel(str_dir+"/TablasOriginales/padron_poblacion.xlsX")
 
 #%%
 
@@ -341,7 +464,7 @@ for i in range(len(poblacion)):
         departamentos.append(poblacion.iloc[i, 1]) # me guardo el departamento que esta en la segunda columna
        
         codigo = poblacion.iloc[i,0].split()[-1] 
-        codigos.append(int(codigo)//1000) # me guardo el id de la provincia que es el primero o los primeros dos digitos
+        codigos.append(int(codigo)) # me guardo el id de la provincia que es el primero o los primeros dos digitos
 
 
 #%% teniendo los indices recorro por tablas y me guardo los datos 
@@ -366,7 +489,8 @@ for i in range(len(indices)):
     
     depto = departamentos[i] 
     depto = str(depto)
-    id_provincia = codigos[i]
+    id_dep = codigos[i]
+    
     
     
     #Las columnas edades y casos las convierto en int, porque puede ser que se vea como numeros pero son str(que es lo que pasa)
@@ -389,7 +513,7 @@ for i in range(len(indices)):
 
     #Con los datos obtenidos me creo un diccionario, los agrego a la lista ya creada antes"
     resultados.append(
-         {"id_Provincia": id_provincia,
+         {"id_Departamento": id_dep,
           "Departamento": depto,
           "Jardin": jardin,
           "Primaria": primaria,
@@ -401,15 +525,110 @@ for i in range(len(indices)):
 df_final = pd.DataFrame(resultados)
 
 
+
+
+
+
+
+
 #%% Modelado de DB
+#%% Creamos Provincia
+
+CrearProvincia = """
+    SELECT DISTINCT provincia_id AS id_Provincia, Provincia AS Nombre_provincia
+    FROM EP_limpio
+    GROUP BY provincia_id, Provincia
+"""
+
+Provincia = db.query(CrearProvincia).df()
+
 #%% Creamos Departamento
+#%% LAS SIGUIENTES CONSULTAS SON PARA INVESTIGAR SOBRE LA CANTIDAD DE DEPARTAMENTOS 
 
-crearDepartamento = """
-                    SELECT DISTINCT Departamento AS Nombre, Provincia
-                    FROM EP_limpio;
+EProv = """
+        SELECT DISTINCT Provincia, Departamento
+        FROM EE_limpio
+        GROUP BY Provincia,Departamento
+        ORDER BY Provincia ASC
+      """
+
+EProv = db.query(EProv).df()
+#%%
+
+PProv = """
+        SELECT DISTINCT in_departamentos, UPPER(departamento) AS Departamento,
+        Provincia, provincia_id
+        FROM EP_limpio
+        GROUP BY in_departamentos, departamento, provincia, provincia_id
+        ORDER BY provincia ASC
+      """
+PProv = db.query(PProv).df()
+
+PProv["in_departamentos"] = PProv["in_departamentos"]
+#%%
+
+
+POPROVV = """
+            SELECT DISTINCT id_Departamento, Departamento
+            FROM df_final
+            GROUP BY id_Departamento, Departamento
+"""
+
+POPROVV = db.query(POPROVV).df()
+#%%
+
+iguales = """
+        SELECT DISTINCT a.id_departamento, UPPER(a.Departamento) AS Departamento,
+        b.in_departamentos, UPPER(b.Departamento) AS Departamento
+        FROM POPROVV AS a
+        LEFT OUTER JOIN PProv AS b
+        ON in_departamentos = id_departamento
+        """
+iguales = db.query(iguales).df() 
+#%%
+
+igualess = """
+        SELECT DISTINCT a.Provincia, a.Departamento, 
+        b.Provincia, UPPER(b.Departamento)      
+        FROM EProv AS a
+        LEFT OUTER JOIN PProv AS b
+        ON a.Provincia = b.provincia AND a.Departamento = b.Departamento
+        """
+igualess = db.query(igualess).df() 
+
+#%%
+
+
+igualesss = """
+        SELECT DISTINCT a.Provincia, a.Departamento, 
+        b.Provincia, UPPER(b.Departamento) AS Departamento   
+        FROM EProv AS a
+        RIGHT OUTER JOIN PProv AS b
+        ON a.Provincia = b.Provincia AND a.Departamento = b.Departamento
+        """
+igualesss = db.query(igualesss).df() 
+
+#%%
+# CONCLUIMOS CON TODO ESTO QUE HAY 528 DEPARTAMENTOS DIFERENTES 
+
+CrearDepartamento = """
+                    SELECT DISTINCT in_departamentos AS id_Departamento, Departamento
+                    FROM EP_limpio
+                    GROUP BY id_Departamento, Departamento
                     """
+Departamento = db.query(CrearDepartamento).df()
 
-Departamento = db.query(crearDepartamento).df()
+#%% AHORA AGREGO EL DEPARTAMENTO QUE NO ESTA EN ESTABLECIMIENTOS PRODUCTIVOS
+
+# le colocamos el id 1 porque no tenemos informacion sobre el mismo debido a que
+# el dataset de establecimientos educativos no nos brinda el id de los departamentos
+# y al mismo tiempo no coincide con ninguno de los demas
+antaD = EProv.iloc[508,1]
+
+
+Departamento.loc[len(Departamento)] = [1, antaD]
+
+
 
 #%% Esta consulta permite que en vez de ordenar solo por departamento y 
 # se nos computen dos departamentos distintos con el mismo nombre como
@@ -427,10 +646,15 @@ ORDER BY Provincia, Departamento;
 """
 Establecimientos_Educativos = db.query(crearEE).df()
 
-#%% Asignmanos la variable EP_limpio a Establecimientos_Productivos porque 
-# ya esta limpiado y acorde al Modelo Relacional
+#%% Creamos Establecimientos_Productivos
+    
+Crear_Establecimientos_Productivos = """
+    SELECT DISTINCT in_departamentos AS id_Departamento, Clae6, Sexo, 
+    Empleados, Establecimientos, Empresas_exportadoras
+    FROM EP_limpio
+"""
 
-Establecimientos_Productivos =  EP_limpio
+Establecimientos_Productivos =  db.query(Crear_Establecimientos_Productivos).df()
 
 #%% AGREGO LA COLUMNA Provincia
 #%%
