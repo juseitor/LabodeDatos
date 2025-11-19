@@ -353,12 +353,11 @@ EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("CORONEL FELIPE VA
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("DOCTOR MANUEL BELGRANO", "DR. MANUEL BELGRANO")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("GENERAL JUAN F QUIROGA", "GENERAL JUAN FACUNDO QUIROGA")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("GENERAL JUAN MARTIN DE PUEYRREDON", "JUAN MARTIN DE PUEYRREDON")
-EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("GENERAL ORTÍZ DE OCAMPO",  "GENERAL ORTIZ DE OCAMPO")
+EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("GENERAL OCAMPO",  "GENERAL ORTIZ DE OCAMPO")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("JUAN B ALBERDI", "JUAN BAUTISTA ALBERDI")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("JUAN F IBARRA", "JUAN FELIPE IBARRA"  )
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("MAYOR LUIS J FONTANA", "MAYOR LUIS J. FONTANA")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("O HIGGINS", "O'HIGGINS")
-EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("GENERAL OCAMPO" , "GENERAL ORTÍZ DE OCAMPO")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("LIBERTADOR GRL SAN MARTIN" , "LIBERTADOR GENERAL SAN MARTIN")
 EE_limpio["Departamento"] = EE_limpio["Departamento"].replace("O HIGGINS", "O'HIGGINS")
 
@@ -436,7 +435,7 @@ EP_limpio = db.query(acentos_departamento_EP).df()
 
 
 
-#%% Limpieza pardón_población 
+#%% Limpieza padrón_población 
 
 #%%
 
@@ -522,7 +521,7 @@ for i in range(len(indices)):
         )
 
 #al finalizar el for obtengo una lista de diccionarios, solo queda convertirlo a DataFrame
-df_final = pd.DataFrame(resultados)
+poblacion_limpio = pd.DataFrame(resultados)
 
 
 
@@ -545,95 +544,119 @@ Provincia = db.query(CrearProvincia).df()
 #%% Creamos Departamento
 #%% LAS SIGUIENTES CONSULTAS SON PARA INVESTIGAR SOBRE LA CANTIDAD DE DEPARTAMENTOS 
 
-EProv = """
+#Apartamos departamentos y provincias de EE
+
+departamentos_de_EE = """
         SELECT DISTINCT Provincia, Departamento
         FROM EE_limpio
         GROUP BY Provincia,Departamento
         ORDER BY Provincia ASC
       """
 
-EProv = db.query(EProv).df()
+departamentos_de_EE = db.query(departamentos_de_EE).df()
 #%%
 
-PProv = """
+#Apartamos departamentos y provincias con su respectivo ID de EP
+
+departamentos_de_EP_y_id = """
         SELECT DISTINCT in_departamentos, UPPER(departamento) AS Departamento,
         Provincia, provincia_id
         FROM EP_limpio
         GROUP BY in_departamentos, departamento, provincia, provincia_id
         ORDER BY provincia ASC
       """
-PProv = db.query(PProv).df()
+departamentos_de_EP_y_id = db.query(departamentos_de_EP_y_id).df()
 
-PProv["in_departamentos"] = PProv["in_departamentos"]
+departamentos_de_EP_y_id["in_departamentos"] = departamentos_de_EP_y_id["in_departamentos"]
 #%%
 
+# Seleccionamos el departamento y su ID de poblacion
 
-POPROVV = """
+departamentos_de_poblacion_y_ID = """
             SELECT DISTINCT id_Departamento, Departamento
-            FROM df_final
+            FROM poblacion_limpio
             GROUP BY id_Departamento, Departamento
 """
 
-POPROVV = db.query(POPROVV).df()
+departamentos_de_poblacion_y_ID = db.query(departamentos_de_poblacion_y_ID).df()
 #%%
 
-iguales = """
+# Buscamos diferencias de departamentos entre id de poblacion e id de EP
+
+diferencias_departamentos_poblacion_a_EP = """
         SELECT DISTINCT a.id_departamento, UPPER(a.Departamento) AS Departamento,
         b.in_departamentos, UPPER(b.Departamento) AS Departamento
-        FROM POPROVV AS a
-        LEFT OUTER JOIN PProv AS b
+        FROM departamentos_de_poblacion_y_ID AS a
+        LEFT OUTER JOIN departamentos_de_EP_y_id AS b
         ON in_departamentos = id_departamento
         """
-iguales = db.query(iguales).df() 
+diferencias_departamentos_poblacion_a_EP = db.query(diferencias_departamentos_poblacion_a_EP).df()
 #%%
 
-igualess = """
+diferencias_departamentos_EP_a_poblacion = """
+        SELECT DISTINCT a.id_departamento, UPPER(a.Departamento) AS Departamento,
+        b.in_departamentos, UPPER(b.Departamento) AS Departamento
+        FROM departamentos_de_poblacion_y_ID AS a
+        RIGHT OUTER JOIN departamentos_de_EP_y_id AS b
+        ON in_departamentos = id_departamento
+        """
+diferencias_departamentos_EP_a_poblacion = db.query(diferencias_departamentos_EP_a_poblacion).df()
+#%%
+
+# Buscamos diferencias entre EE y EP
+
+diferencias_departamentos_EE_a_EP = """
         SELECT DISTINCT a.Provincia, a.Departamento, 
         b.Provincia, UPPER(b.Departamento)      
-        FROM EProv AS a
-        LEFT OUTER JOIN PProv AS b
+        FROM departamentos_de_EE AS a
+        LEFT OUTER JOIN departamentos_de_EP_y_id AS b
         ON a.Provincia = b.provincia AND a.Departamento = b.Departamento
         """
-igualess = db.query(igualess).df() 
+diferencias_departamentos_EE_a_EP = db.query(diferencias_departamentos_EE_a_EP).df() 
 
 #%%
 
-
-igualesss = """
+diferencias_departamentos_EP_a_EE = """
         SELECT DISTINCT a.Provincia, a.Departamento, 
         b.Provincia, UPPER(b.Departamento) AS Departamento   
-        FROM EProv AS a
-        RIGHT OUTER JOIN PProv AS b
+        FROM departamentos_de_EE AS a
+        RIGHT OUTER JOIN departamentos_de_EP_y_id AS b
         ON a.Provincia = b.Provincia AND a.Departamento = b.Departamento
         """
-igualesss = db.query(igualesss).df() 
+diferencias_departamentos_EP_a_EE = db.query(diferencias_departamentos_EP_a_EE).df() 
+
+#%%
+# Podemos ver que dentro de Tierra del Fuego, el departamento
+# Tolhuin que no posee ningún establecimiento educativo, y el departamento
+# Antartida Argentina no posee ningún establecimiento productivo.
 
 #%%
 # CONCLUIMOS CON TODO ESTO QUE HAY 528 DEPARTAMENTOS DIFERENTES 
 
 CrearDepartamento = """
-                    SELECT DISTINCT in_departamentos AS id_Departamento, Departamento
+                    SELECT DISTINCT in_departamentos AS id_Departamento, Departamento AS Nombre_depto
                     FROM EP_limpio
-                    GROUP BY id_Departamento, Departamento
+                    GROUP BY id_Departamento, Nombre_depto
                     """
 Departamento = db.query(CrearDepartamento).df()
 
 #%% AHORA AGREGO EL DEPARTAMENTO QUE NO ESTA EN ESTABLECIMIENTOS PRODUCTIVOS
 
-# le colocamos el id 1 porque no tenemos informacion sobre el mismo debido a que
-# el dataset de establecimientos educativos no nos brinda el id de los departamentos
-# y al mismo tiempo no coincide con ninguno de los demas
-antaD = EProv.iloc[508,1]
-
+# le colocamos el id 1 a Antartida argentina porque no tenemos informacion 
+# sobre el id de este departamento debido a que la fuente de datos de 
+# establecimientos educativos no nos brinda el id de los departamentos 
+# y este departamento sólo se encuentra en Establecimientos Educativos
+antaD = departamentos_de_EE.iloc[508,1]
 
 Departamento.loc[len(Departamento)] = [1, antaD]
-
 
 
 #%% Esta consulta permite que en vez de ordenar solo por departamento y 
 # se nos computen dos departamentos distintos con el mismo nombre como
 # el mismo, hace que Provincia y Departamento en conjunto sean la clave.
-
+#%% Creamos Establecimientos_Educativos
+# Lo que corresponde es reemplazar valores NaN por 0, insertar id_departamento
+# y cambiar nombres atributos según modelo relacional
 crearEE = """
     SELECT Provincia, Departamento,
     SUM(CASE WHEN JardinM = 1 OR JardinI = 1 THEN 1 ELSE 0 END) AS Cantidad_Jardines,
@@ -656,8 +679,8 @@ Crear_Establecimientos_Productivos = """
 
 Establecimientos_Productivos =  db.query(Crear_Establecimientos_Productivos).df()
 
-#%% AGREGO LA COLUMNA Provincia
-#%%
+#%% Población
+#%% Creamos Población
 pro =   """
         SELECT DISTINCT UPPER(departamento) AS departamento, provincia_id, UPPER(provincia) AS provincia
         FROM EP_limpioo
@@ -684,7 +707,7 @@ po = """
         SELECT id_Provincia, UPPER(Departamento) AS Departamento, Jardin AS Población_jardin,
         Primaria AS Población_primario, Secundaria AS Población_secundario,
         "Poblacion Total" AS Cantidad_habitantes
-        FROM df_final
+        FROM poblacion_limpio
 """
 po = db.query(po).df()
 
