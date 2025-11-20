@@ -1,11 +1,17 @@
-#NOMBRE DE LOS 3 INTEGRANTES 
 
-# Benjamin Francisco Vales
-
-# Gabriel Duham Lopez
-
-# Diego Armando Pariona Escalante 
-
+#####################################################################
+#                               Autores                             #
+#                                                                   #
+# Benjamin Francisco Vales                                          #
+# LU: 156/23                                                        #
+#                                                                   #
+# Gabriel Duham Lopez                                               #
+# LU: 615/23                                                        #
+#                                                                   #
+# Diego Armando Pariona Escalante                                   #
+# LU: 559/24                                                        #
+#                                                                   #
+#####################################################################
 
 
 import pandas as pd
@@ -962,7 +968,7 @@ SQL4 = """
     ELSE SUBSTR(CAST(Clae6 AS VARCHAR), 1, 3) END AS CLAE3,
     "Cant. empleos"
     FROM quedamos_con_max
-    ORDER BY Provincia, Departamento
+    ORDER BY "Cant. Empleos" DESC, Clae6 DESC
 """
 
 sql4 = db.query(SQL4).df()
@@ -1059,6 +1065,25 @@ df_figura3 = db.query(DF_FIGURA3_1).df()
 
 #%%
 
+#Cambiamos los nombres para que a posterior este mas legible el gráfico
+CAMBIO_NOMBRES = """
+    SELECT id_Provincia, REPLACE(Provincia,'SANTIAGO DEL ESTERO', 'S. DEL ESTERO') AS Provincia, 
+    Cant_EE
+    FROM df_figura3
+"""
+
+df_figura3 = db.query(CAMBIO_NOMBRES).df()
+
+CAMBIO_NOMBRES_2 = """
+    SELECT id_Provincia, REPLACE(Provincia,'TIERRA DEL FUEGO', 'T. DEL FUEGO') AS Provincia, 
+    Cant_EE
+    FROM df_figura3
+"""
+
+df_figura3 = db.query(CAMBIO_NOMBRES_2).df()
+
+#%%
+
 # Hacemos un calculo de la mediana para cada provincia, para
 #luego insertarlo en el hiperparámetro Order
 MEDIANA = """
@@ -1070,13 +1095,14 @@ MEDIANA = """
 
 mediana = db.query(MEDIANA).df()
 
-orden = mediana["id_Provincia"].values
+orden = mediana["Provincia"].values
 
-#%%
+#%% 
+
 fig, ax = plt.subplots(figsize=(8,5))
 sns.boxplot(
     data = df_figura3,
-    x = "id_Provincia",
+    x = "Provincia",
     y = "Cant_EE",
     ax = ax,
     showfliers = False, #Eliminamos outliers para un mas legible gráfico
@@ -1086,9 +1112,9 @@ sns.boxplot(
 ax.set_xlabel("Provincias", fontsize=11)
 ax.set_ylabel("Cantidad de Establecimientos Educativos", fontsize=11)
 ax.set_title("Boxplot de la cantidad de Establecimientos Educativos por Provincias", fontsize=13, fontweight="bold")
+ax.set_xticklabels(ax.get_xticklabels(), rotation=90) # Hacemos verticales los valores de x para que sea legible
 ax.grid(True)
 
-plt.tight_layout() #ajusta automáticamente los espacios y márgenes del gráfico para que los títulos
 plt.show()
 
 
