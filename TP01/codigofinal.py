@@ -13,6 +13,7 @@ import numpy as np
 import pathlib as pl
 import duckdb as db
 import matplotlib as plt
+import matplotlib.pyplot as plt
 import seaborn as sns
 
 #%%Código para ubicar las DB
@@ -38,6 +39,7 @@ EP_df = pd.read_csv(str_dir+'/TablasOriginales/Datos_por_departamento_actividad_
 
 #%% POBLACION
 #%%
+
 poblacion = pd.read_excel(str_dir+"/TablasOriginales/padron_poblacion.xlsX")
 
 
@@ -407,9 +409,9 @@ poblacion = poblacion.iloc[:, 1:]
 #elimino la ultima tabla que es el resumen que tampoco me servira
 poblacion = poblacion.iloc[:56596]
 
-#%%  Obtengo los indices, los nombres de los departamentos y su codigo de la provincia a la que corresponden
-#%%
+#%%  
 
+# Obtengo los indices, los nombres de los departamentos y su codigo de la provincia a la que corresponden
 departamentos = []
 codigos = []
 indices=[]
@@ -498,6 +500,8 @@ CrearProvincia = """
 """
 
 Provincia = db.query(CrearProvincia).df()
+
+
 #%% Departamento
 #%% 
 
@@ -512,7 +516,6 @@ departamentos_de_EE = """
         ORDER BY Provincia ASC
       """
 departamentos_de_EE = db.query(departamentos_de_EE).df()
-
 
 #%%
 
@@ -574,6 +577,7 @@ Departamento = db.query(CrearDepartamento).df()
 #Departamento y le colocamos el id 1    
 Departamento.loc[len(Departamento)] = [1, "ANTARTIDA ARGENTINA", 94]
 
+
 #%% Establecimientos_Educativos
 #%%
 
@@ -592,6 +596,7 @@ Establecimientos_Educativos = db.query(Creamos_Establecimientos_Educativos).df()
 # Insertamos el id_Departamento código numero 1 al único colegio de Antartida
 #Argentina de cueanexo 940011700. 
 Establecimientos_Educativos.iloc[50221,0] = 1
+
 
 #%% Establecimientos_Productivos
 #%%
@@ -665,6 +670,7 @@ Departamento.to_csv(str_dir+'/TablasModelo/Departamento')
 Establecimientos_Educativos.to_csv(str_dir+'/TablasModelo/Establecimientos_Educativos')
 Establecimientos_Productivos.to_csv(str_dir+'/TablasModelo/Establecimientos_Productivos')
 poblacion_limpio.to_csv(str_dir+'/TablasModelo/Poblacion')
+
 
 
 #%%                             Consultas SQL
@@ -749,6 +755,7 @@ sql1 = db.query(SQL1).df()
 
 sql1.to_csv(str_dir+'/anexo/sql1')
 
+
 #%% 2) SQL
 #%%
 
@@ -787,6 +794,7 @@ SQL2 = """
 sql2 = db.query(SQL2).df()
 
 sql2.to_csv(str_dir+'/anexo/sql2')
+
 
 #%% 3) SQL
 #%%
@@ -866,6 +874,7 @@ SQL3 = """
 sql3 = db.query(SQL3).df()
 
 sql3.to_csv(str_dir+'/anexo/sql3')
+
 
 #%% 4) SQL
 #%%
@@ -960,6 +969,8 @@ sql4 = db.query(SQL4).df()
 
 sql4.to_csv(str_dir+'/anexo/sql4')
 
+
+
 #%%                                 Gráficos
 #%% Gráfico 1)
 #%%
@@ -990,8 +1001,8 @@ Grafico1.plot(
 #sql1
 res = []
 for i in range(len(sql1)):
-    Provincia = sql1.iloc[i,0]
-    Departamento = sql1.iloc[i,1]
+    Provinciasql2 = sql1.iloc[i,0]
+    Departamentosql2 = sql1.iloc[i,1]
     Jardines = sql1.iloc[i,2]
     Primarios = sql1.iloc[i,4]
     Secundarios = sql1.iloc[i,6]
@@ -999,9 +1010,9 @@ for i in range(len(sql1)):
     PoblacionP = sql1.iloc[i,5]
     PoblacionS = sql1.iloc[i,7]
     
-    j = {"Provincia":Provincia,"Departamento":Departamento,"Nivel":"Jardin","cant_EE":Jardines,"Poblacion":PoblacionJ}
-    p = {"Provincia":Provincia,"Departamento":Departamento,"Nivel":"Primario","cant_EE":Primarios,"Poblacion":PoblacionP}
-    s = {"Provincia":Provincia,"Departamento":Departamento,"Nivel":"Secundario","cant_EE":Secundarios,"Poblacion":PoblacionS}
+    j = {"Provincia":Provinciasql2,"Departamento":Departamentosql2,"Nivel":"Jardin","cant_EE":Jardines,"Poblacion":PoblacionJ}
+    p = {"Provincia":Provinciasql2,"Departamento":Departamentosql2,"Nivel":"Primario","cant_EE":Primarios,"Poblacion":PoblacionP}
+    s = {"Provincia":Provinciasql2,"Departamento":Departamentosql2,"Nivel":"Secundario","cant_EE":Secundarios,"Poblacion":PoblacionS}
     
     res.append(j)
     res.append(p)
@@ -1062,8 +1073,6 @@ mediana = db.query(MEDIANA).df()
 orden = mediana["id_Provincia"].values
 
 #%%
-
-
 fig, ax = plt.subplots(figsize=(8,5))
 sns.boxplot(
     data = df_figura3,
@@ -1083,7 +1092,8 @@ plt.tight_layout() #ajusta automáticamente los espacios y márgenes del gráfic
 plt.show()
 
 
-#%% Gráfico 4
+#%% Gráfico 4)
+#%%
 
 # El dataframe CANTIDAD_EE tiene la cantidad de establecimientos educativos
 # por departamento (id)
@@ -1153,3 +1163,71 @@ Grafico4 = sns.scatterplot(
 #Grafico4.savefig(str_dir+'/anexo/Grafico4.png')
 
 
+#%% Gráfico 5)
+#%%
+
+# Consultamos para obtener claes6 y empleos tanto masculinos como femeninos
+DF_FIGURA5_1 = """
+    SELECT DISTINCT Clae6, Sexo, SUM(Empleados) AS Empleados
+    FROM Establecimientos_Productivos
+    GROUP BY Clae6, Sexo
+    ORDER BY Clae6 
+"""
+
+df_figura5 = db.query(DF_FIGURA5_1).df()
+
+#%%
+
+# Agrupamos por cantidad de empleados y de empleo femenino
+DF_FIGURA5_2 = """
+    SELECT Clae6, SUM(Empleados) AS Cantidad_Empleados, 
+    SUM(CASE WHEN Sexo = 'Varones' THEN 0 ELSE Empleados END) AS Empleadas_Mujeres
+    FROM df_figura5
+    GROUP BY Clae6
+    ORDER BY Clae6 ASC
+"""
+
+df_figura5 = db.query(DF_FIGURA5_2).df()
+
+#%%
+
+# Agrego una columna del % del empleo femenino
+df_figura5.loc[:, "% de Empleo Femenino"] = df_figura5["Empleadas_Mujeres"] * 100 / df_figura5["Cantidad_Empleados"]
+
+#%%
+
+# Ordenamos df_figura5 por porcentaje de empleo femenino
+DF_FIGURA5_3 = """
+    SELECT *
+    FROM df_figura5
+    ORDER BY "% de Empleo Femenino"
+"""
+
+df_figura5 = db.query(DF_FIGURA5_3).df()
+
+#%%
+
+# Nos quedamos con las 5 filas que mayor y menor proporcion tienen 
+menores_clae6 = df_figura5.head()
+mayores_clae6 = df_figura5.tail()
+
+#%%
+
+# Concatenamos los mayores y menores claes con % de empleo femenino
+figura5 = pd.concat([mayores_clae6, menores_clae6], axis = 0)
+
+#%%
+
+fig, ax = plt.subplots(figsize=(8,6))  
+
+sns.barplot(
+    data = figura5,
+    x = "Clae6",
+    y = "% de Empleo Femenino",
+    ax = ax 
+    )
+
+ax.set_xlabel("Clae6", fontsize=11)
+ax.set_ylabel("% de Empleo Femenino", fontsize=11)
+ax.set_title("Actividades con mayor y menor proporcion de Empleo Femenino en 2022", fontsize=13, fontweight="bold")
+ax.grid(True)
