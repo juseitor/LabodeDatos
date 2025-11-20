@@ -55,11 +55,14 @@ anio = db.query(anio).df()
 
 
 anio_2021 = anio.loc[0,"cant"]
+print(anio_2021)
 
 
 cant_registros = len(EP_df)
+print(cant_registros)
 
 obtenido_anio = anio_2021 / cant_registros
+print(obtenido_anio)
 
 
 
@@ -85,8 +88,10 @@ tel = db.query(tel).df()
 
 
 telefono = tel.loc[0,"cant"] + tel.loc[1,"cant"]
+print(telefono)
 
 obtenido_telefono = telefono / cant_registros
+print(obtenido_telefono)
 
 
 #%%  EE Domiclio
@@ -102,8 +107,29 @@ dom = db.query(dom).df()
 
 
 domicilio = dom.loc[0,"cant"]
+print(domicilio)
 
 obtenido_domicilio = domicilio / cant_registros
+print(obtenido_domicilio)
+
+
+#%% EE Mail
+#%%
+
+correo =  """
+        SELECT Mail , COUNT(*) AS cant
+        FROM EE_df
+        WHERE Mail IS NULL
+        GROUP BY Mail
+        """
+correo = db.query(correo).df()
+
+
+mail = correo.loc[0,"cant"]
+print(mail)
+
+obtenido_mail = mail / cant_registros
+print(obtenido_mail) 
 
 
 #%% Provincias entre EE y EP 
@@ -149,6 +175,7 @@ metrica1 = db.query(Metrica1).df()
 
 
 m1 = metrica1.loc[0,"Cantidad_Nulls"] / 24
+print(m1)
 
 #%%
 
@@ -498,6 +525,8 @@ CrearProvincia = """
 """
 
 Provincia = db.query(CrearProvincia).df()
+
+
 #%% Departamento
 #%% 
 
@@ -512,7 +541,6 @@ departamentos_de_EE = """
         ORDER BY Provincia ASC
       """
 departamentos_de_EE = db.query(departamentos_de_EE).df()
-
 
 #%%
 
@@ -574,6 +602,7 @@ Departamento = db.query(CrearDepartamento).df()
 #Departamento y le colocamos el id 1    
 Departamento.loc[len(Departamento)] = [1, "ANTARTIDA ARGENTINA", 94]
 
+
 #%% Establecimientos_Educativos
 #%%
 
@@ -592,6 +621,7 @@ Establecimientos_Educativos = db.query(Creamos_Establecimientos_Educativos).df()
 # Insertamos el id_Departamento código numero 1 al único colegio de Antartida
 #Argentina de cueanexo 940011700. 
 Establecimientos_Educativos.iloc[50221,0] = 1
+ 
 
 #%% Establecimientos_Productivos
 #%%
@@ -602,7 +632,7 @@ Crear_Establecimientos_Productivos = """
     Empleados, Establecimientos, Empresas_exportadoras
     FROM EP_limpio
 """
- 
+
 Establecimientos_Productivos =  db.query(Crear_Establecimientos_Productivos).df()
  
 
@@ -658,16 +688,8 @@ Población = """
             """
 Población = db.query(Población).df()
 
-# exportamos todas las tablas a la carpeta anexo
-#Falta relación provincia
-# Provincia.to_csv(str_dir+'/anexo/Provincia')
-Departamento.to_csv(str_dir+'/TablasModelo/Departamento')
-Establecimientos_Educativos.to_csv(str_dir+'/TablasModelo/Establecimientos_Educativos')
-Establecimientos_Productivos.to_csv(str_dir+'/TablasModelo/Establecimientos_Productivos')
-poblacion_limpio.to_csv(str_dir+'/TablasModelo/Poblacion')
 
-
-#%%                             Consultas SQL
+#%%                           Consultas SQL
 #%% 1) SQL
 #%%
 
@@ -687,7 +709,7 @@ id_deptos_con_ee_por_modalidad = db.query(id_deptos_con_EE_por_modalidad).df()
 
 #%%
 
-# Conseguimos los departamentos
+# Obtenemos csv
 DEPARTAMENTO_PROVINCIA_ID_DEPARTAMENTO =  """
     SELECT p.Nombre_provincia AS Provincia, d.Nombre_depto AS Departamento,
     d.id_Departamento
@@ -747,7 +769,6 @@ SQL1 = """
 
 sql1 = db.query(SQL1).df()
 
-sql1.to_csv(str_dir+'/anexo/sql1')
 
 #%% 2) SQL
 #%%
@@ -786,7 +807,6 @@ SQL2 = """
 
 sql2 = db.query(SQL2).df()
 
-sql2.to_csv(str_dir+'/anexo/sql2')
 
 #%% 3) SQL
 #%%
@@ -865,7 +885,6 @@ SQL3 = """
 
 sql3 = db.query(SQL3).df()
 
-sql3.to_csv(str_dir+'/anexo/sql3')
 
 #%% 4) SQL
 #%%
@@ -958,7 +977,7 @@ SQL4 = """
 
 sql4 = db.query(SQL4).df()
 
-sql4.to_csv(str_dir+'/anexo/sql4')
+
 
 #%%                                 Gráficos
 #%% Gráfico 1)
@@ -966,7 +985,7 @@ sql4.to_csv(str_dir+'/anexo/sql4')
 
 C5 =    """
         SELECT Provincia, SUM (Empleados) AS "Empleados por provincia"
-        FROM EP_limpio
+        FROM Establecimientos_Productivos
         GROUP BY Provincia
         ORDER BY "Empleados por provincia" DESC
         """
@@ -977,15 +996,13 @@ Grafico1.plot(
     x = "Provincia",
     y = "Empleados por provincia",
     kind = 'bar',
-    logy = True,
+    #yticks = 10000,
     xlabel = 'Provincia',
     title = 'Cantidad de empleados por provincia en 2022',
     )
 
-#Grafico1.savefig(str_dir+'/anexo/Grafico1.png')
-
 #%% Gráfico 2)
-#%%
+
 
 #sql1
 res = []
@@ -1011,19 +1028,18 @@ for i in range(len(sql1)):
 dato_graf = pd.DataFrame(res)
 
     
-Grafico2 = sns.scatterplot(
+sns.scatterplot(
     data = dato_graf,
     x = "Poblacion",
     y = "cant_EE",
     hue = "Nivel")
 
-#Grafico2.savefig(str_dir+'/anexo/Grafico2.png')
 
 #%% Gráfico 3)
 #%%
 
 # Hacemos una consulta para obtener en un DataFrame llamado 
-#df_figura3 en el cual obtenemos las provincias para 
+#df_figura4 en el cual obtenemos las provincias para 
 #cantidad_ee
 DF_FIGURA3 = """
     SELECT e.id_Departamento, d.Provincia, d.Departamento, e.Cant_EE
@@ -1083,73 +1099,38 @@ plt.tight_layout() #ajusta automáticamente los espacios y márgenes del gráfic
 plt.show()
 
 
-#%% Gráfico 4
+#%%
 
-# El dataframe CANTIDAD_EE tiene la cantidad de establecimientos educativos
-# por departamento (id)
 
-# Primero busco la cantidad de Establecimientos productivos por departamento
 
-CANTIDAD_EP = """
-    SELECT id_Departamento, SUM(Empleados) AS Cantidad_empleados
-    FROM Establecimientos_Productivos
-    GROUP BY id_Departamento
+
+
+
+
+
+#%% AUXILIAR
+
+# Conseguimos los departamentos que no estan en Población
+DEPARTAMENTOS_NO_EN_POBLACION = """
+    SELECT DISTINCT d.id_Departamento
+    FROM Departamento AS d
+    LEFT OUTER JOIN Población AS p
+    ON d.id_Departamento = p.id_Departamento
+    WHERE p.id_Departamento IS NULL
 """
 
-cantidad_empleados_por_depto = db.query(CANTIDAD_EP).df()
+departamentos_no_en_poblacion = db.query(DEPARTAMENTOS_NO_EN_POBLACION).df()
 
-# Tenemos la población por departamento en el dataframe Población.
-# Nos interesa hacer la división de la población por mil
+# Ahora conseguimos los departamentos que no estan en Establecimientos_Educativos
+DEPARTAMENTOS_NO_EN_EE = """
+    SELECT DISTINCT d.id_Departamento
+    FROM Departamento AS d
+    LEFT OUTER JOIN Establecimientos_Educativos AS ee
+    ON d.id_Departamento = ee.id_Departamento
+    WHERE ee.id_Departamento IS NULL
+"""
+departamentos_no_en_ee = db.query(DEPARTAMENTOS_NO_EN_EE).df()
 
-habitantes_sobre_mil = Población[['id_Departamento','Cantidad_habitantes']]
 
-habitantes_sobre_mil['Cantidad_habitantes'] = habitantes_sobre_mil['Cantidad_habitantes'].div(1000)
-
-#%%
-
-# Juntamos los tres datos en un solo dataframe
-
-EE_y_habitantes = """
-    SELECT habitantes_sobre_mil.id_Departamento, habitantes_sobre_mil.Cantidad_habitantes, cantidad_ee.CANT_EE, 
-    FROM habitantes_sobre_mil
-    INNER JOIN cantidad_ee
-    ON habitantes_sobre_mil.id_Departamento = cantidad_ee.id_Departamento
-    """
-
-EE_cada_mil_habitantes = db.query(EE_y_habitantes).df()
-
-# La fila correspondiente a Antartida Argentina y a Tolhuin quedan descartadas  
-# pues no tienen habitantes 
-
-EE_EP_y_habitantes = """
-    SELECT EE_cada_mil_habitantes.id_Departamento, EE_cada_mil_habitantes.Cantidad_habitantes, 
-    EE_cada_mil_habitantes.Cant_EE, cantidad_empleados_por_depto.cantidad_Empleados
-    FROM EE_cada_mil_habitantes
-    INNER JOIN cantidad_empleados_por_depto
-    ON EE_cada_mil_habitantes.id_Departamento = cantidad_empleados_por_depto.id_Departamento
-    """
-    
-EE_EP_cada_mil_habitantes = db.query(EE_EP_y_habitantes).df()
-
-#%%
-
-# Dividimos la cantidad de establecimientos educativos y empleados por 
-# la cantidad de habitantes/1000
-
-EE_EP_cada_mil_habitantes['Cant_EE'] = EE_EP_cada_mil_habitantes['Cant_EE']/EE_EP_cada_mil_habitantes['Cantidad_habitantes']
-
-EE_EP_cada_mil_habitantes['Cantidad_empleados'] = EE_EP_cada_mil_habitantes['Cantidad_empleados']/EE_EP_cada_mil_habitantes['Cantidad_habitantes']
-
-#%% 
-
-#Por último, graficamos
-
-Grafico4 = sns.scatterplot(
-    data = EE_EP_cada_mil_habitantes,
-    x = 'Cant_EE',
-    y = 'Cantidad_empleados'
-    )
-
-#Grafico4.savefig(str_dir+'/anexo/Grafico4.png')
 
 
